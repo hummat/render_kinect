@@ -72,9 +72,9 @@ namespace render_kinect
     {
       noise_field = cv::Mat(height_,width_,CV_32FC1);
       
-#if HAVE_OMP
-#pragma omp parallel for
-#endif
+//#if HAVE_OMP
+//#pragma omp parallel for
+//#endif
       for(int r=0; r<height_; ++r) {
 	float* noise_i = noise_field.ptr<float>(r);
 	for(int c=0; c<width_; ++c) {

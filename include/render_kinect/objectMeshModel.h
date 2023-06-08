@@ -96,35 +96,95 @@ namespace render_kinect
     // Constructor that loads the geometry from a given file name
     ObjectMeshModel(const std::string object_path)
       {
-	scene_ =  aiImportFile(object_path.c_str(),aiProcessPreset_TargetRealtime_Quality);
-	if(scene_==NULL){
-	  std::cout << "Could not load mesh from file " << object_path << std::endl;
-	  exit(-1);
-	}
+      scene_ =  aiImportFile(object_path.c_str(),aiProcessPreset_TargetRealtime_Quality);
+      if(scene_==NULL){
+        std::cout << "Could not load mesh from file " << object_path << std::endl;
+        exit(-1);
+      }
 
-	if(scene_->mNumMeshes>1)
-	  {
-	    std::cout << "Object " << object_path << " consists of more than one mesh." << std::endl;
-	    exit(-1);
-	  }
+      if(scene_->mNumMeshes>1)
+        {
+          std::cout << "Object " << object_path << " consists of more than one mesh." << std::endl;
+          exit(-1);
+	      }
+        init();
+      }
 
-	numFaces_ = scene_->mMeshes[0]->mNumFaces;
-	numVertices_ = scene_->mMeshes[0]->mNumVertices;
-	
-	std::cout << "adding " << scene_->mNumMeshes 
-		  << " meshes with " << numFaces_ 
-		  << " faces and " << numVertices_ 
-		  << " vertices" << std::endl;
-	vertices_.resize(4,numVertices_);
-	for(unsigned v=0;v<numVertices_;++v)
-	    {
-	      vertices_(0,v) = scene_->mMeshes[0]->mVertices[v].x;
-	      vertices_(1,v) = scene_->mMeshes[0]->mVertices[v].y;
-	      vertices_(2,v) = scene_->mMeshes[0]->mVertices[v].z;
-	      vertices_(3,v) = 1;
-	    }
-	
-	original_transform_ = Eigen::Affine3d::Identity();
+
+       ObjectMeshModel(float* vertices, int num_verts, int* faces, int num_faces)
+      {
+        aiScene* scene = new aiScene();
+        scene->mMaterials = new aiMaterial*[ 1 ];
+        scene->mMaterials[ 0 ] = nullptr;
+        scene->mNumMaterials = 1;
+
+        scene->mMaterials[ 0 ] = new aiMaterial();
+
+
+
+        scene->mMeshes = new aiMesh*[ 1 ];
+        scene->mMeshes[ 0 ] = nullptr;
+        scene->mNumMeshes = 1;
+
+        scene->mMeshes[ 0 ] = new aiMesh();
+        scene->mMeshes[ 0 ]->mMaterialIndex = 0;
+
+
+        scene->mRootNode = new aiNode();
+        scene->mRootNode->mMeshes = new unsigned int[ 1 ];
+        scene->mRootNode->mMeshes[ 0 ] = 0;
+        scene->mRootNode->mNumMeshes = 1;
+
+        auto pMesh = scene->mMeshes[ 0 ];
+
+        pMesh->mVertices = new aiVector3D[ num_verts ];
+        pMesh->mNumVertices = num_verts;
+
+
+
+        for ( int i = 0; i < num_verts; i++ ) {
+            pMesh->mVertices[ i ] = aiVector3D( vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2] );
+            //pMesh->mTextureCoords[ 0 ][ i ] = aiVector3D( 0, 0, 0 );
+        }
+
+        pMesh->mFaces = new aiFace[ num_faces ];
+        pMesh->mNumFaces = num_faces;
+
+          for ( int i = 0; i < num_faces; i++ ) {
+
+            aiFace& face = pMesh->mFaces[ i ];
+            face.mIndices = new unsigned int[ 3 ];
+            face.mNumIndices = 3;
+
+            face.mIndices[ 0 ] = faces[i * 3 + 0];
+            face.mIndices[ 1 ] = faces[i * 3 + 1];
+            face.mIndices[ 2 ] = faces[i * 3 + 2];
+        }
+
+        scene_ = scene; 
+        init();
+      }
+
+      void init() {
+
+        numFaces_ = scene_->mMeshes[0]->mNumFaces;
+        numVertices_ = scene_->mMeshes[0]->mNumVertices;
+        
+        std::cout << "adding " << scene_->mNumMeshes 
+            << " meshes with " << numFaces_ 
+            << " faces and " << numVertices_ 
+            << " vertices" << std::endl;
+        vertices_.resize(4,numVertices_);
+        for(unsigned v=0;v<numVertices_;++v)
+            {
+              vertices_(0,v) = scene_->mMeshes[0]->mVertices[v].x;
+              vertices_(1,v) = scene_->mMeshes[0]->mVertices[v].y;
+              vertices_(2,v) = scene_->mMeshes[0]->mVertices[v].z;
+              vertices_(3,v) = 1;
+            }
+        
+        original_transform_ = Eigen::Affine3d::Identity();
+      
       }
    
     void deallocateScene(){aiReleaseImport(scene_);}

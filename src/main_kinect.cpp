@@ -90,15 +90,15 @@ int main(int argc, char **argv)
   
   cam_info.z_near = 0.5;
   cam_info.z_far = 6.0;
-  cam_info.fx_ = 580.0;
-  cam_info.fy_ = 580.0;
+  cam_info.fx_ = 582.6989;
+  cam_info.fy_ = 582.6989;
   // baseline between IR projector and IR camera
   cam_info.tx_ = 0.075;
 
   // Type of noise
   //  cam_info.noise_ = render_kinect::GAUSSIAN;
-  //  cam_info.noise_ = render_kinect::PERLIN;
-  cam_info.noise_ = render_kinect::NONE;
+  cam_info.noise_ = render_kinect::PERLIN;
+  //cam_info.noise_ = render_kinect::NONE;
 
   // Test Transform
   Eigen::Affine3d transform(Eigen::Affine3d::Identity());
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
   render_kinect::Simulate Simulator(cam_info, full_path.str(), dot_path);
 
   // Number of samples
-  int frames = 10;
+  int frames = 1;
   // Flags for what output data should be generated
   bool store_depth = 1;
   bool store_label = 1;
@@ -120,13 +120,58 @@ int main(int argc, char **argv)
   for(int i=0; i<frames; ++i) {
     
     // sample noisy transformation around initial one
-    getRandomTransform(0.02,0.02,0.02,0.05,noise);
-    Eigen::Affine3d current_tf = noise*transform;
+    getRandomTransform(0.0,0.0,0.0,0.0,noise);
+    Eigen::Affine3d current_tf = Eigen::Affine3d::Identity();
     
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     // give pose and object name to renderer
     Simulator.simulateMeasurement(current_tf, store_depth, store_label, store_pcd);
-    
+    std::cout << "simulateMeasurement " << std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
+
   }
 
   return 0;
+}
+
+
+
+
+extern "C" {
+  void simulate(float* vertices, int num_verts, int* faces, int num_faces, float* out_depth) {
+
+    // Camera Parameters
+    render_kinect::CameraInfo cam_info;
+    
+    cam_info.width = 640;
+    cam_info.height = 480;
+    cam_info.cx_ = 320;
+    cam_info.cy_ = 240;
+    
+    cam_info.z_near = 0.5;
+    cam_info.z_far = 6.0;
+    cam_info.fx_ = 582.6989;
+    cam_info.fy_ = 582.6989;
+    // baseline between IR projector and IR camera
+    cam_info.tx_ = 0.075;
+
+    // Type of noise
+    //  cam_info.noise_ = render_kinect::GAUSSIAN;
+    cam_info.noise_ = render_kinect::PERLIN;
+    //cam_info.noise_ = render_kinect::NONE;
+    // Get the path to the dot pattern
+    std::string dot_path = "/home/wink_do/PycharmProjects/render_kinect/data/kinect-pattern_3x3.png";
+	  render_kinect::KinectSimulator* object_model = new render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
+
+    Eigen::Affine3d current_tf = Eigen::Affine3d::Identity();
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    cv::Mat scaled_im_, point_cloud_, labels_;
+
+    cv::Mat depth_im_(cam_info.height, cam_info.width,CV_32FC1, out_depth);
+
+      scaled_im_ = cv::Mat(cam_info.height, cam_info.width, CV_32FC1);      
+      object_model->intersect(current_tf, point_cloud_, depth_im_, labels_);
+
+    std::cout << "intersect " << std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
+
+  }
 }

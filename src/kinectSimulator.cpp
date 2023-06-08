@@ -84,12 +84,28 @@ namespace render_kinect {
     , noisy_labels_(0)
   {
     
-    std::cout << "Width and Height: " << p_camera_info.width << "x"
-	      << p_camera_info.height << std::endl;
     std::cout << "Loading models for objects: " << object_name << std::endl;
 
     model_ = boost::shared_ptr<ObjectMeshModel>(new ObjectMeshModel(object_name));
+	init(dot_path);
+  }
+
+   KinectSimulator::KinectSimulator(const CameraInfo &p_camera_info,
+				   float* vertices, int num_verts, int* faces, int num_faces,
+				   std::string dot_path) 
+    : camera_( p_camera_info)
+    , noise_type_(p_camera_info.noise_)
+    , noise_gen_(NULL)
+    , noisy_labels_(0)
+  {
     
+    model_ = boost::shared_ptr<ObjectMeshModel>(new ObjectMeshModel(vertices, num_verts, faces, num_faces));
+	init(dot_path);
+  }
+
+void KinectSimulator::init(std::string dot_path) {
+    std::cout << "Width and Height: " << camera_.getWidth() << "x"
+	      << camera_.getHeight() << std::endl;
     search_ = new TreeAndTri; 
     updateTree();
 
@@ -190,8 +206,8 @@ namespace render_kinect {
     updateTree();
 
     // allocate memory for depth map and labels
-    depth_map = cv::Mat(camera_.getHeight(), camera_.getWidth(), CV_64FC1);
-    depth_map.setTo(0.0);
+    //depth_map = cv::Mat(camera_.getHeight(), camera_.getWidth(), CV_64FC1);
+    //depth_map.setTo(0.0);
     labels = cv::Mat(camera_.getHeight(), camera_.getWidth(), CV_8UC3);
     labels.setTo(cv::Scalar(background_, background_, background_));
     cv::Mat disp(camera_.getHeight(), camera_.getWidth(), CV_32FC1);
@@ -201,9 +217,9 @@ namespace render_kinect {
     int n_occluded = 0;
     vec.reserve(camera_.getHeight() * camera_.getWidth());
 
-#if HAVE_OMP
-#pragma omp parallel for collapse(2)
-#endif
+//#if HAVE_OMP
+//#pragma omp parallel for collapse(2)
+//#endif
     for(int c=0; c<camera_.getWidth(); ++c) {
       for(int r=0; r<camera_.getHeight(); ++r) {
 	// compute ray from pixel and camera configuration
@@ -300,13 +316,14 @@ namespace render_kinect {
     // Filter disparity image and add noise 
     cv::Mat out_disp, out_labels;
     filterDisp(disp, labels, out_disp, out_labels);
+	//out_disp = disp;
     if(noisy_labels_)
       labels = out_labels;
 
     //Go over disparity image and recompute depth map and point cloud after filtering and adding noise etc
     for(int r=0; r<camera_.getHeight(); ++r) {
       float* disp_i = out_disp.ptr<float>(r);
-      double* depth_map_i = depth_map.ptr<double>(r);
+      float* depth_map_i = depth_map.ptr<float>(r);
       for(int c=0; c<camera_.getWidth(); ++c) {
 	float disp = disp_i[c];
 	if(disp<invalid_disp_){

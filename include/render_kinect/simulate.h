@@ -58,7 +58,7 @@ namespace render_kinect {
   public:
   
   Simulate(CameraInfo &cam_info, std::string object_name, std::string dot_path) 
-    : out_path_("/tmp/") 
+    : out_path_(object_name + "_") 
       {
 	// allocate memory for depth image
 	int w = cam_info.width;
@@ -85,7 +85,9 @@ namespace render_kinect {
 
       // simulate measurement of object and store in image, point cloud and labeled image
       cv::Mat p_result;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
       object_model_->intersect(transform_, point_cloud_, depth_im_, labels_);
+    std::cout << "intersect " << std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
       
       // in case object is not in view, don't store any data
       // However, if background is used, there will be points in the point cloud
@@ -102,6 +104,7 @@ namespace render_kinect {
 	lD << out_path_ << "depth_orig" << std::setw(3) << std::setfill('0')
 	   << countf << ".png";
 	convertScaleAbs(depth_im_, scaled_im_, 255.0f);
+     std::cout << lD.str().c_str() << std::endl;
 	cv::imwrite(lD.str().c_str(), scaled_im_);
       }
 
@@ -110,6 +113,7 @@ namespace render_kinect {
 	std::stringstream lD;
 	lD << out_path_ << "labels" << std::setw(3) << std::setfill('0')
 	   << countf << ".png";
+     std::cout << lD.str().c_str() << std::endl;
 	cv::imwrite(lD.str().c_str(), labels_);
       }
 

@@ -72,6 +72,7 @@ namespace render_kinect
     static constexpr float invalid_disp_ = 99999999.9;
     static constexpr float window_inlier_distance_ = 0.1;
 
+    void init(std::string dot_path);
     void initRobot();
     void updateObjectPoses(const Eigen::Affine3d &p_transform);
     void updateTree();
@@ -94,6 +95,7 @@ namespace render_kinect
     // wether label image should overlap with the noisy depth image
     bool noisy_labels_;
 
+
   public:
     
     std::vector<cv::Scalar> color_map_;
@@ -108,6 +110,10 @@ namespace render_kinect
 
     KinectSimulator(const CameraInfo &p_camera_info,
 		    std::string object_name,
+		    std::string dot_path);
+
+    KinectSimulator(const CameraInfo &p_camera_info,
+		    float* vertices, int num_verts, int* faces, int num_faces,
 		    std::string dot_path);
     ~KinectSimulator();
 
