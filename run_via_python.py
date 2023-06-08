@@ -7,6 +7,8 @@ import trimesh
 import matplotlib.pyplot as plt
 import open3d as o3d
 
+import pyrender
+from pyrender.shader_program import ShaderProgramCache
 
 lib = cdll.LoadLibrary("/home/wink_do/PycharmProjects/render_kinect/lib/libkinectSim.so")
 
@@ -20,61 +22,96 @@ class KinectSim:
         lib.simulate(verts, len(verts), faces, len(faces), out_depth)
      
 
-    
-name = "144_scan_small_cup"
-front = True
+def render_kinect(mesh: o3d.geometry.TriangleMesh):        
+
+    out_depth = np.zeros((480, 640), np.float32)
+    KinectSim.simulate(mesh.vertices.astype(np.float32), mesh.faces.astype(np.int32), out_depth)
+
+    out_depth[out_depth == 0] = 2047
+
+    print(out_depth.min(), out_depth.max())
+
+    width = 640
+    height = 480
+    rgbd_image = o3d.geometry.RGBDImage().create_from_color_and_depth(o3d.geometry.Image(np.repeat(out_depth[:, :, None], 3, -1).astype(np.uint8)),
+                                                                    o3d.geometry.Image(out_depth),
+                                                                    depth_scale=1.0,
+                                                                    depth_trunc=10.0,
+                                                                    convert_rgb_to_intensity=False)
+
+    intrinsic = o3d.camera.PinholeCameraIntrinsic(width, height, fx=582.6989, fy=582.6989, cx=width // 2, cy=height // 2)
+    extrinsic = np.identity(4)
+    extrinsic[1, :] *= -1
+    extrinsic[2, :] *= -1
+    pcd = o3d.geometry.PointCloud().create_from_rgbd_image(image=rgbd_image,
+                                                        intrinsic=intrinsic,
+                                                        extrinsic=extrinsic)
+
+    return np.asarray(pcd.points)
+
+
+def render_perfect(mesh: o3d.geometry.TriangleMesh,
+        width: int = 640,
+        height: int = 480):
+    trimesh_mesh = trimesh.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.faces), process=False)
+    pyrender_mesh = pyrender.Mesh.from_trimesh(trimesh_mesh, smooth=False)
+    camera = pyrender.IntrinsicsCamera(fx=582.6989, fy=582.6989, cx=width // 2, cy=height // 2, znear=0.01, zfar=10.0)
+    pose = np.eye(4)
+    #pose[2, 3] = np.clip(np.random.normal(1, 0.4), 0.7, 1.5)
+
+    scene = pyrender.Scene()
+    scene.add(pyrender_mesh)
+    scene.add(camera, pose=pose)
+
+    renderer = pyrender.OffscreenRenderer(width, height)
+    renderer._renderer._program_cache = ShaderProgramCache(shader_dir="shaders")
+
+    normal_image, depth_image = renderer.render(scene, flags=pyrender.RenderFlags.SKIP_CULL_FACES)
+
+    rgbd_image = o3d.geometry.RGBDImage().create_from_color_and_depth(o3d.geometry.Image(normal_image.astype(np.uint8)),
+                                                                    o3d.geometry.Image(depth_image),
+                                                                    depth_scale=1.0,
+                                                                    depth_trunc=10.0,
+                                                                    convert_rgb_to_intensity=False)
+
+    intrinsic = o3d.camera.PinholeCameraIntrinsic(width, height, fx=582.6989, fy=582.6989, cx=width // 2, cy=height // 2)
+    extrinsic = np.eye(4)#inv_trafo(pose)
+    extrinsic[1, :] *= -1
+    extrinsic[2, :] *= -1
+    pcd = o3d.geometry.PointCloud().create_from_rgbd_image(image=rgbd_image,
+                                                        intrinsic=intrinsic,
+                                                        extrinsic=extrinsic)
+
+    points = np.asarray(pcd.points)
+    normals = np.asarray(pcd.colors) * 2 - 1
+    return points, normals
+
+
 f_kinect_world = np.array([[0.18889654314248513, -0.5491412049704937, 0.8141013875353555, -1.29464394785277], [-0.9455020122657823, -0.325615105774899, -0.0002537971720279581, -0.009541282377521727], [0.2652233842565174, -0.7696874527524885, -0.5807223538112247, 0.5834419201245094], [0.0, 0.0, 0.0, 1.0]])
 x_world_detection_position = np.array( [0.25, -0.8, 0.68])
-mesh = trimesh.load_mesh("/volume/reconstruction_data/wink_do/stableGrasping/evals/grasping/ycb/b52a66ac-2738-4ece-9a12-1ac623996fd5_e8f314f6-916f-4ce2-9239-26dca11fd56d_no_filter/" + name + "/eval/textured.obj/0/mesh.obj")#_simplified0.003
-if front:
-    mesh = mesh.apply_translation([0, 0.15, 0])
-    name += "_front"
+mesh = trimesh.load_mesh("mesh.obj")
 
+# Move a bit towards cam
+mesh = mesh.apply_translation([0, 0.15, 0])
 
+# Add table
 table = trimesh.primitives.Box([1, 1, 0.6], trimesh.transformations.translation_matrix([0, 0, -0.3]))
 mesh = trimesh.util.concatenate(mesh, table)
-#mesh.show()
 
 mesh = mesh.apply_translation(x_world_detection_position)
 mesh.apply_transform(f_kinect_world)
 print(mesh.bounds)
 #mesh.show()
 
-out_depth = np.zeros((480, 640), np.float32)
-while True:
-    begin = time.time()
-    KinectSim.simulate(mesh.vertices.astype(np.float32), mesh.faces.astype(np.int32), out_depth)
-    print(time.time() - begin)
-    break
+points = render_kinect(mesh)
+pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
+o3d.io.write_point_cloud(str("kinect.pcd"), pcd)
 
+# Pyrender uses -Z forward
+mesh.apply_transform(trimesh.transformations.euler_matrix(np.pi, 0, 0))
 
-#plt.imshow(out_depth)
-#plt.show()
+points, _ = render_perfect(mesh)
+pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
+o3d.io.write_point_cloud(str("perfect.pcd"), pcd)
 
-out_depth[out_depth == 0] = 2047
-
-print(out_depth.min(), out_depth.max())
-
-#out_depth *= 1000
-width = 640
-height = 480
-rgbd_image = o3d.geometry.RGBDImage().create_from_color_and_depth(o3d.geometry.Image(np.repeat(out_depth[:, :, None], 3, -1).astype(np.uint8)),
-                                                                o3d.geometry.Image(out_depth),
-                                                                depth_scale=1.0,
-                                                                depth_trunc=10.0,
-                                                                convert_rgb_to_intensity=False)
-
-intrinsic = o3d.camera.PinholeCameraIntrinsic(width, height, fx=width, fy=width, cx=width // 2, cy=height // 2)
-extrinsic = np.identity(4)
-#extrinsic = inv_trafo(pose)
-#extrinsic[1, :] *= -1
-#extrinsic[2, :] *= -1
-pcd = o3d.geometry.PointCloud().create_from_rgbd_image(image=rgbd_image,
-                                                    intrinsic=intrinsic,
-                                                    extrinsic=extrinsic)
-
-#points = project_depth(out_depth, depth_trunc=2)
-#print(points.max(0), points.min(0))
-
-#pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
-o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
+#o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
