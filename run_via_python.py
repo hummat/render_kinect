@@ -10,7 +10,7 @@ import open3d as o3d
 import pyrender
 from pyrender.shader_program import ShaderProgramCache
 
-lib = cdll.LoadLibrary("/home/wink_do/PycharmProjects/render_kinect/lib/libkinectSim.so")
+lib = cdll.LoadLibrary("lib/libkinectSim.so")
 
 lib.simulate.argtypes = [np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags='C_CONTIGUOUS'), c_int, np.ctypeslib.ndpointer(dtype=np.int32, ndim=2, flags='C_CONTIGUOUS'), c_int, np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags='C_CONTIGUOUS')]
 lib.simulate.restype = None
@@ -89,7 +89,7 @@ def render_perfect(mesh: o3d.geometry.TriangleMesh,
 
 f_kinect_world = np.array([[0.18889654314248513, -0.5491412049704937, 0.8141013875353555, -1.29464394785277], [-0.9455020122657823, -0.325615105774899, -0.0002537971720279581, -0.009541282377521727], [0.2652233842565174, -0.7696874527524885, -0.5807223538112247, 0.5834419201245094], [0.0, 0.0, 0.0, 1.0]])
 x_world_detection_position = np.array( [0.25, -0.8, 0.68])
-mesh = trimesh.load_mesh("mesh.obj")
+mesh = trimesh.load_mesh("mesh_gray_bowl.obj")
 
 # Move a bit towards cam
 mesh = mesh.apply_translation([0, 0.15, 0])

@@ -159,8 +159,8 @@ extern "C" {
     cam_info.noise_ = render_kinect::PERLIN;
     //cam_info.noise_ = render_kinect::NONE;
     // Get the path to the dot pattern
-    std::string dot_path = "/home/wink_do/PycharmProjects/render_kinect/data/kinect-pattern_3x3.png";
-	  render_kinect::KinectSimulator* object_model = new render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
+    std::string dot_path = "/run/media/matthias/1274B04B74B032F9/git/render_kinect/data/kinect-pattern_3x3.png";
+    render_kinect::KinectSimulator* object_model = new render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
 
     Eigen::Affine3d current_tf = Eigen::Affine3d::Identity();
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
