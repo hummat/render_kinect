@@ -4,4 +4,4 @@ assimp
 bin
 build
 lib
-.pcd
+*.pcd

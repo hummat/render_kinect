@@ -85,8 +85,8 @@ int main(int argc, char **argv)
   
   cam_info.width = 640;
   cam_info.height = 480;
-  cam_info.cx_ = 320;
-  cam_info.cy_ = 240;
+  cam_info.cx_ = 320.7906;
+  cam_info.cy_ = 245.2647;
   
   cam_info.z_near = 0.5;
   cam_info.z_far = 6.0;
@@ -144,8 +144,8 @@ extern "C" {
     
     cam_info.width = 640;
     cam_info.height = 480;
-    cam_info.cx_ = 320;
-    cam_info.cy_ = 240;
+    cam_info.cx_ = 320.7906;
+    cam_info.cy_ = 245.2647;
     
     cam_info.z_near = 0.5;
     cam_info.z_far = 6.0;
@@ -155,9 +155,9 @@ extern "C" {
     cam_info.tx_ = 0.075;
 
     // Type of noise
-    //  cam_info.noise_ = render_kinect::GAUSSIAN;
+    // cam_info.noise_ = render_kinect::GAUSSIAN;
     cam_info.noise_ = render_kinect::PERLIN;
-    //cam_info.noise_ = render_kinect::NONE;
+    // cam_info.noise_ = render_kinect::NONE;
     // Get the path to the dot pattern
     std::string dot_path = "/run/media/matthias/1274B04B74B032F9/git/render_kinect/data/kinect-pattern_3x3.png";
     render_kinect::KinectSimulator* object_model = new render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
@@ -168,10 +168,10 @@ extern "C" {
 
     cv::Mat depth_im_(cam_info.height, cam_info.width,CV_32FC1, out_depth);
 
-      scaled_im_ = cv::Mat(cam_info.height, cam_info.width, CV_32FC1);      
-      object_model->intersect(current_tf, point_cloud_, depth_im_, labels_);
+    scaled_im_ = cv::Mat(cam_info.height, cam_info.width, CV_32FC1);
+    object_model->intersect(current_tf, point_cloud_, depth_im_, labels_);
 
-    std::cout << "intersect " << std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
+    // std::cout << "intersect " << std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
 
   }
 }

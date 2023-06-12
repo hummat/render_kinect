@@ -27,6 +27,12 @@ def render_kinect(mesh: o3d.geometry.TriangleMesh):
     out_depth = np.zeros((480, 640), np.float32)
     KinectSim.simulate(mesh.vertices.astype(np.float32), mesh.faces.astype(np.int32), out_depth)
 
+    plt.subplots(figsize=(6, 4))
+    plt.imshow(out_depth, cmap="jet")
+    plt.axis("off")
+    plt.tight_layout()
+    plt.show()
+
     out_depth[out_depth == 0] = 2047
 
     print(out_depth.min(), out_depth.max())
@@ -87,15 +93,20 @@ def render_perfect(mesh: o3d.geometry.TriangleMesh,
     return points, normals
 
 
-f_kinect_world = np.array([[0.18889654314248513, -0.5491412049704937, 0.8141013875353555, -1.29464394785277], [-0.9455020122657823, -0.325615105774899, -0.0002537971720279581, -0.009541282377521727], [0.2652233842565174, -0.7696874527524885, -0.5807223538112247, 0.5834419201245094], [0.0, 0.0, 0.0, 1.0]])
-x_world_detection_position = np.array( [0.25, -0.8, 0.68])
-mesh = trimesh.load_mesh("mesh_gray_bowl.obj")
+f_kinect_world = np.array([[0.18889654314248513, -0.5491412049704937, 0.8141013875353555, -1.29464394785277],
+                           [-0.9455020122657823, -0.325615105774899, -0.0002537971720279581, -0.009541282377521727],
+                           [0.2652233842565174, -0.7696874527524885, -0.5807223538112247, 0.5834419201245094],
+                           [0.0, 0.0, 0.0, 1.0]])
+x_world_detection_position = np.array([0.25, -0.8, 0.68])
+# mesh = trimesh.load_mesh("mesh_gray_bowl.obj")
+mesh = trimesh.load_mesh("/run/media/matthias/2C20BCA320BC7604/datasets/automatica/029_gray_bowl/simplified.ply")
 
 # Move a bit towards cam
 mesh = mesh.apply_translation([0, 0.15, 0])
 
 # Add table
 table = trimesh.primitives.Box([1, 1, 0.6], trimesh.transformations.translation_matrix([0, 0, -0.3]))
+print(table.vertices.shape, table.faces.shape)
 mesh = trimesh.util.concatenate(mesh, table)
 
 mesh = mesh.apply_translation(x_world_detection_position)
@@ -103,9 +114,13 @@ mesh.apply_transform(f_kinect_world)
 print(mesh.bounds)
 #mesh.show()
 
+print(f_kinect_world)
+
 points = render_kinect(mesh)
 pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
 o3d.io.write_point_cloud(str("kinect.pcd"), pcd)
+
+o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
 
 # Pyrender uses -Z forward
 mesh.apply_transform(trimesh.transformations.euler_matrix(np.pi, 0, 0))
@@ -114,4 +129,4 @@ points, _ = render_perfect(mesh)
 pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
 o3d.io.write_point_cloud(str("perfect.pcd"), pcd)
 
-#o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
+o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
