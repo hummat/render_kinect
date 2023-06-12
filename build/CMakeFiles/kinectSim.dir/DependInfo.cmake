@@ -1,0 +1,21 @@
+
+# Consider dependencies only in project.
+set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
+
+# The set of languages for which implicit dependencies are needed:
+set(CMAKE_DEPENDS_LANGUAGES
+  )
+
+# The set of dependency files which are needed:
+set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/run/media/matthias/1274B04B74B032F9/git/render_kinect/src/kinectSimulator.cpp" "CMakeFiles/kinectSim.dir/src/kinectSimulator.cpp.o" "gcc" "CMakeFiles/kinectSim.dir/src/kinectSimulator.cpp.o.d"
+  "/run/media/matthias/1274B04B74B032F9/git/render_kinect/src/main_kinect.cpp" "CMakeFiles/kinectSim.dir/src/main_kinect.cpp.o" "gcc" "CMakeFiles/kinectSim.dir/src/main_kinect.cpp.o.d"
+  "/run/media/matthias/1274B04B74B032F9/git/render_kinect/src/noiseutils.cpp" "CMakeFiles/kinectSim.dir/src/noiseutils.cpp.o" "gcc" "CMakeFiles/kinectSim.dir/src/noiseutils.cpp.o.d"
+  )
+
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
+  )
+
+# Fortran module output directory.
+set(CMAKE_Fortran_TARGET_MODULE_DIR "")
