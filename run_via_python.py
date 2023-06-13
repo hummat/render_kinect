@@ -98,8 +98,8 @@ f_kinect_world = np.array([[0.18889654314248513, -0.5491412049704937, 0.81410138
                            [0.2652233842565174, -0.7696874527524885, -0.5807223538112247, 0.5834419201245094],
                            [0.0, 0.0, 0.0, 1.0]])
 x_world_detection_position = np.array([0.25, -0.8, 0.68])
-# mesh = trimesh.load_mesh("mesh_gray_bowl.obj")
-mesh = trimesh.load_mesh("/run/media/matthias/2C20BCA320BC7604/datasets/automatica/029_gray_bowl/simplified.ply")
+mesh = trimesh.load_mesh("mesh_gray_bowl.obj")
+# mesh = trimesh.load_mesh("/run/media/matthias/2C20BCA320BC7604/datasets/automatica/029_gray_bowl/simplified.ply")
 
 # Move a bit towards cam
 mesh = mesh.apply_translation([0, 0.15, 0])
