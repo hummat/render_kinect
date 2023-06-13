@@ -104,8 +104,7 @@ namespace render_kinect {
   }
 
 void KinectSimulator::init(std::string dot_path) {
-    std::cout << "Width and Height: " << camera_.getWidth() << "x"
-	      << camera_.getHeight() << std::endl;
+    // std::cout << "Width and Height: " << camera_.getWidth() << "x" << camera_.getHeight() << std::endl;
     search_ = new TreeAndTri; 
     updateTree();
 
@@ -113,12 +112,11 @@ void KinectSimulator::init(std::string dot_path) {
     color_map_.push_back(cv::Scalar( rand()&255, rand()&255, rand()&255 ));
 
     // reading dot pattern for filtering of disparity image
-    dot_pattern_ = cv::imread(dot_path.c_str(), 0);
-    if(! dot_pattern_.data ) // Check for invalid input
-      {
-	std::cout <<  "Could not load dot pattern from " <<  dot_path << std::endl ;
-	exit(-1);
-      }
+    dot_pattern_ = cv::imread(dot_path.c_str(), cv::IMREAD_GRAYSCALE);
+    if(! dot_pattern_.data ) {
+	  std::cout <<  "Could not load dot pattern from " <<  dot_path << std::endl;
+	  exit(-1);
+    }
     
     // initialize filter matrices for simulated disparity
     weights_ = cv::Mat(size_filt_,size_filt_,CV_32FC1);

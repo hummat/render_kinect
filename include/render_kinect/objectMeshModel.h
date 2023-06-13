@@ -170,10 +170,10 @@ namespace render_kinect
         numFaces_ = scene_->mMeshes[0]->mNumFaces;
         numVertices_ = scene_->mMeshes[0]->mNumVertices;
         
-        std::cout << "adding " << scene_->mNumMeshes 
+        /* std::cout << "adding " << scene_->mNumMeshes
             << " meshes with " << numFaces_ 
             << " faces and " << numVertices_ 
-            << " vertices" << std::endl;
+            << " vertices" << std::endl; */
         vertices_.resize(4,numVertices_);
         for(unsigned v=0;v<numVertices_;++v)
             {

@@ -137,20 +137,30 @@ int main(int argc, char **argv)
 
 
 extern "C" {
-  void simulate(float* vertices, int num_verts, int* faces, int num_faces, float* out_depth) {
+  void simulate(float* vertices,
+                int num_verts,
+                int* faces,
+                int num_faces,
+                float* out_depth,
+                int width,
+                int height,
+                float fx,
+                float fy,
+                float cx,
+                float cy) {
 
     // Camera Parameters
     render_kinect::CameraInfo cam_info;
     
-    cam_info.width = 640;
-    cam_info.height = 480;
-    cam_info.cx_ = 320.7906;
-    cam_info.cy_ = 245.2647;
+    cam_info.width = width;
+    cam_info.height = height;
+    cam_info.cx_ = cx;
+    cam_info.cy_ = cy;
     
     cam_info.z_near = 0.5;
     cam_info.z_far = 6.0;
-    cam_info.fx_ = 582.6989;
-    cam_info.fy_ = 582.6989;
+    cam_info.fx_ = fx;
+    cam_info.fy_ = fy;
     // baseline between IR projector and IR camera
     cam_info.tx_ = 0.075;
 
@@ -158,8 +168,10 @@ extern "C" {
     // cam_info.noise_ = render_kinect::GAUSSIAN;
     cam_info.noise_ = render_kinect::PERLIN;
     // cam_info.noise_ = render_kinect::NONE;
-    // Get the path to the dot pattern
-    std::string dot_path = "/home/humt_ma/USERDIR/git/render_kinect/data/kinect-pattern_3x3.png";
+    std::string dot_path = "/home/humt_ma/USERDIR/git/render_kinect/data/kinect-pattern_3x3_no_iccp.png";
+    //actualpath = realpath(dot_path.c_str(), NULL);
+    //std::cout <<  "Could not load dot pattern from " <<  actualpath << std::endl ;
+    //std::string abs_dot_path(actualpath);
     render_kinect::KinectSimulator* object_model = new render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
 
     Eigen::Affine3d current_tf = Eigen::Affine3d::Identity();
@@ -170,8 +182,5 @@ extern "C" {
 
     scaled_im_ = cv::Mat(cam_info.height, cam_info.width, CV_32FC1);
     object_model->intersect(current_tf, point_cloud_, depth_im_, labels_);
-
-    // std::cout << "intersect " << std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
-
   }
 }
