@@ -1,6 +1,5 @@
-libnoise
-assimp
 .vscode
+.idea
 bin
-lib
+build
 *.pcd
