@@ -79,29 +79,32 @@ namespace render_kinect
 	KinectSimulator::KinectSimulator(const CameraInfo &p_camera_info,
 									 std::string object_name,
 									 std::string dot_path)
-		: camera_(p_camera_info), noise_type_(p_camera_info.noise_), noise_gen_(NULL), noisy_labels_(0)
+		: camera_(p_camera_info), noise_type_(p_camera_info.noise_), noisy_labels_(0)
 	{
 
 		std::cout << "Loading models for objects: " << object_name << std::endl;
 
-		model_ = boost::shared_ptr<ObjectMeshModel>(new ObjectMeshModel(object_name));
+		model_ = std::make_unique<ObjectMeshModel>(object_name);
 		init(dot_path);
 	}
 
 	KinectSimulator::KinectSimulator(const CameraInfo &p_camera_info,
-									 float *vertices, int num_verts, int *faces, int num_faces,
+									 float *vertices,
+									 int num_verts,
+									 int *faces,
+									 int num_faces,
 									 std::string dot_path)
-		: camera_(p_camera_info), noise_type_(p_camera_info.noise_), noise_gen_(NULL), noisy_labels_(0)
+		: camera_(p_camera_info), noise_type_(p_camera_info.noise_), noisy_labels_(0)
 	{
 
-		model_ = boost::shared_ptr<ObjectMeshModel>(new ObjectMeshModel(vertices, num_verts, faces, num_faces));
+		model_ = std::make_unique<ObjectMeshModel>(vertices, num_verts, faces, num_faces);
 		init(dot_path);
 	}
 
 	void KinectSimulator::init(std::string dot_path)
 	{
 		// std::cout << "Width and Height: " << camera_.getWidth() << "x" << camera_.getHeight() << std::endl;
-		search_ = new TreeAndTri;
+		search_ = std::make_unique<TreeAndTri>();
 		updateTree();
 
 		// colour map assumes there is only one object
@@ -111,8 +114,7 @@ namespace render_kinect
 		dot_pattern_ = cv::imread(dot_path.c_str(), cv::IMREAD_GRAYSCALE);
 		if (!dot_pattern_.data)
 		{
-			std::cout << "Could not load dot pattern from " << dot_path << std::endl;
-			exit(-1);
+			throw std::runtime_error("Could not load dot pattern from " + dot_path);
 		}
 
 		// initialize filter matrices for simulated disparity
@@ -152,26 +154,22 @@ namespace render_kinect
 			// Gaussian Noise
 			float mean = 0.0;
 			float std = 0.15;
-			noise_gen_ = new GaussianNoise(camera_.getWidth(), camera_.getHeight(), mean, std);
+			noise_gen_ = std::make_unique<GaussianNoise>(camera_.getWidth(), camera_.getHeight(), mean, std);
 		}
 		else if (noise_type_ == PERLIN)
 		{
 			float scale = 0.4;
-			noise_gen_ = new PerlinNoise(camera_.getWidth(), camera_.getHeight(), scale);
+			noise_gen_ = std::make_unique<PerlinNoise>(camera_.getWidth(), camera_.getHeight(), scale);
 		}
 		else if (noise_type_ == SIMPLEX)
 		{
 			float scale = 0.5;
-			noise_gen_ = new SimplexNoise(camera_.getWidth(), camera_.getHeight(), scale);
+			noise_gen_ = std::make_unique<SimplexNoise>(camera_.getWidth(), camera_.getHeight(), scale);
 		}
 	}
 
 	// Destructor
-	KinectSimulator::~KinectSimulator()
-	{
-		if (noise_gen_ != NULL)
-			delete noise_gen_;
-	}
+	KinectSimulator::~KinectSimulator() {}
 
 	// Function that exchanges current object transform
 	void KinectSimulator::updateObjectPoses(const Eigen::Affine3d &p_transform)
@@ -183,10 +181,10 @@ namespace render_kinect
 	// with new vertices according to the updated transform
 	void KinectSimulator::updateTree()
 	{
-		model_->uploadVertices(search_);
-		model_->uploadIndices(search_);
+		model_->uploadVertices(search_.get());
+		model_->uploadIndices(search_.get());
 		// since we are only dealing with one mesh for now, ID=0
-		model_->uploadPartIDs(search_, 0);
+		model_->uploadPartIDs(search_.get(), 0);
 
 		search_->tree.rebuild(search_->triangles.begin(), search_->triangles.end());
 		search_->tree.accelerate_distance_queries();

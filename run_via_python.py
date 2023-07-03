@@ -138,7 +138,7 @@ points = render_kinect(mesh)
 pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
 o3d.io.write_point_cloud(str("kinect.pcd"), pcd)
 
-o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
+# o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
 
 # Pyrender uses -Z forward
 mesh.apply_transform(trimesh.transformations.euler_matrix(np.pi, 0, 0))
@@ -147,4 +147,4 @@ points, _ = render_perfect(mesh)
 pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
 o3d.io.write_point_cloud(str("perfect.pcd"), pcd)
 
-o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
+# o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])

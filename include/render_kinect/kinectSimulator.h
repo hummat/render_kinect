@@ -38,8 +38,6 @@
 #ifndef KINECTSIMULATOR_H_
 #define KINECTSIMULATOR_H_
 
-#include <boost/shared_ptr.hpp>
-
 #include <render_kinect/objectMeshModel.h>
 #include <render_kinect/camera.h>
 #include <render_kinect/noise.h>
@@ -62,8 +60,8 @@ namespace render_kinect
   class KinectSimulator
   {
   private:
-    boost::shared_ptr<ObjectMeshModel> model_;
-    TreeAndTri *search_;
+    std::unique_ptr<ObjectMeshModel> model_;
+    std::unique_ptr<TreeAndTri> search_;
 
     Camera camera_;
     // static const float invalid_disp_ = 99999999.9;
@@ -72,7 +70,6 @@ namespace render_kinect
     static constexpr float window_inlier_distance_ = 0.1;
 
     void init(std::string dot_path);
-    void initRobot();
     void updateObjectPoses(const Eigen::Affine3d &p_transform);
     void updateTree();
     void filterDisp(const cv::Mat &disp, const cv::Mat &labels, cv::Mat &out_disp, cv::Mat &out_labels);
@@ -83,7 +80,7 @@ namespace render_kinect
     cv::Mat fill_weights_;
 
     // noise generator
-    Noise *noise_gen_;
+    std::unique_ptr<Noise> noise_gen_;
     // what noise to use on disparity map
     NoiseType noise_type_;
 
