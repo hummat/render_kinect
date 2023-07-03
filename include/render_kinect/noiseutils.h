@@ -81,10 +81,10 @@ namespace noise
     /// The maximum height of a raster.
     const int RASTER_MAX_HEIGHT = 32767;
 
-    #ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
     // The raster's stride length must be a multiple of this constant.
     const int RASTER_STRIDE_BOUNDARY = 4;
-    #endif
+#endif
 
     /// A pointer to a callback function used by the NoiseMapBuilder class.
     ///
@@ -95,7 +95,7 @@ namespace noise
     /// a count of the rows that have been completed.  It returns void.  Pass
     /// a function with this signature to the NoiseMapBuilder::SetCallback()
     /// method.
-    typedef void(*NoiseMapCallback) (int row);
+    typedef void (*NoiseMapCallback)(int row);
 
     /// Number of meters per point in a Terragen terrain (TER) file.
     const double DEFAULT_METERS_PER_POINT = 30.0;
@@ -115,42 +115,37 @@ namespace noise
     class Color
     {
 
-      public:
+    public:
+      /// Constructor.
+      Color()
+      {
+      }
 
-        /// Constructor.
-        Color ()
-        {
-        }
+      /// Constructor.
+      ///
+      /// @param r Value of the red channel.
+      /// @param g Value of the green channel.
+      /// @param b Value of the blue channel.
+      /// @param a Value of the alpha (transparency) channel.
+      Color(noise::uint8 r,
+            noise::uint8 g,
+            noise::uint8 b,
+            noise::uint8 a)
+          : alpha(a), blue(b), green(g), red(r)
+      {
+      }
 
-        /// Constructor.
-        ///
-        /// @param r Value of the red channel.
-        /// @param g Value of the green channel.
-        /// @param b Value of the blue channel.
-        /// @param a Value of the alpha (transparency) channel.
-        Color (noise::uint8 r, 
-	       noise::uint8 g, 
-	       noise::uint8 b,
-	       noise::uint8 a)
-	  : alpha (a)
-	  , blue (b)
-	  , green (g)
-	  , red (r)
-        {
-        }
+      /// Value of the alpha (transparency) channel.
+      noise::uint8 alpha;
 
-        /// Value of the alpha (transparency) channel.
-        noise::uint8 alpha;
+      /// Value of the blue channel.
+      noise::uint8 blue;
 
-        /// Value of the blue channel.
-        noise::uint8 blue;
+      /// Value of the green channel.
+      noise::uint8 green;
 
-        /// Value of the green channel.
-        noise::uint8 green;
-
-        /// Value of the red channel.
-        noise::uint8 red;
-
+      /// Value of the red channel.
+      noise::uint8 red;
     };
 
     /// Defines a point used to build a color gradient.
@@ -170,7 +165,6 @@ namespace noise
 
       /// The color of this gradient point.
       Color color;
-
     };
 
     /// Defines a color gradient.
@@ -205,108 +199,106 @@ namespace noise
     class GradientColor
     {
 
-      public:
+    public:
+      /// Constructor.
+      GradientColor();
 
-        /// Constructor.
-        GradientColor ();
+      /// Destructor.
+      ~GradientColor();
 
-        /// Destructor.
-        ~GradientColor ();
+      /// Adds a gradient point to this gradient object.
+      ///
+      /// @param gradientPos The position of this gradient point.
+      /// @param gradientColor The color of this gradient point.
+      ///
+      /// @pre No two gradient points have the same position.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the precondition.
+      ///
+      /// It does not matter which order these gradient points are added.
+      void AddGradientPoint(double gradientPos,
+                            const Color &gradientColor);
 
-        /// Adds a gradient point to this gradient object.
-        ///
-        /// @param gradientPos The position of this gradient point.
-        /// @param gradientColor The color of this gradient point.
-        ///
-        /// @pre No two gradient points have the same position.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the precondition.
-        ///
-        /// It does not matter which order these gradient points are added.
-        void AddGradientPoint (double gradientPos,
-          const Color& gradientColor);
+      /// Deletes all the gradient points from this gradient object.
+      ///
+      /// @post All gradient points from this gradient object are deleted.
+      void Clear();
 
-        /// Deletes all the gradient points from this gradient object.
-        ///
-        /// @post All gradient points from this gradient object are deleted.
-        void Clear ();
+      /// Returns the color at the specified position in the color gradient.
+      ///
+      /// @param gradientPos The specified position.
+      ///
+      /// @returns The color at that position.
+      const Color &GetColor(double gradientPos) const;
 
-        /// Returns the color at the specified position in the color gradient.
-        ///
-        /// @param gradientPos The specified position.
-        ///
-        /// @returns The color at that position.
-        const Color& GetColor (double gradientPos) const;
+      /// Returns a pointer to the array of gradient points in this object.
+      ///
+      /// @returns A pointer to the array of gradient points.
+      ///
+      /// Before calling this method, call GetGradientPointCount() to
+      /// determine the number of gradient points in this array.
+      ///
+      /// It is recommended that an application does not store this pointer
+      /// for later use since the pointer to the array may change if the
+      /// application calls another method of this object.
+      const GradientPoint *GetGradientPointArray() const
+      {
+        return m_pGradientPoints;
+      }
 
-        /// Returns a pointer to the array of gradient points in this object.
-        ///
-        /// @returns A pointer to the array of gradient points.
-        ///
-        /// Before calling this method, call GetGradientPointCount() to
-        /// determine the number of gradient points in this array.
-        ///
-        /// It is recommended that an application does not store this pointer
-        /// for later use since the pointer to the array may change if the
-        /// application calls another method of this object.
-        const GradientPoint* GetGradientPointArray () const
-        {
-          return m_pGradientPoints;
-        }
+      /// Returns the number of gradient points stored in this object.
+      ///
+      /// @returns The number of gradient points stored in this object.
+      int GetGradientPointCount() const
+      {
+        return m_gradientPointCount;
+      }
 
-        /// Returns the number of gradient points stored in this object.
-        ///
-        /// @returns The number of gradient points stored in this object.
-        int GetGradientPointCount () const
-        {
-          return m_gradientPointCount;
-        }
+    private:
+      /// Determines the array index in which to insert the gradient point
+      /// into the internal gradient-point array.
+      ///
+      /// @param gradientPos The position of this gradient point.
+      ///
+      /// @returns The array index in which to insert the gradient point.
+      ///
+      /// @pre No two gradient points have the same input value.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the precondition.
+      ///
+      /// By inserting the gradient point at the returned array index, this
+      /// object ensures that the gradient-point array is sorted by input
+      /// value.  The code that maps a value to a color requires a sorted
+      /// gradient-point array.
+      int FindInsertionPos(double gradientPos);
 
-      private:
+      /// Inserts the gradient point at the specified position in the
+      /// internal gradient-point array.
+      ///
+      /// @param insertionPos The zero-based array position in which to
+      /// insert the gradient point.
+      /// @param gradientPos The position of this gradient point.
+      /// @param gradientColor The color of this gradient point.
+      ///
+      /// To make room for this new gradient point, this method reallocates
+      /// the gradient-point array and shifts all gradient points occurring
+      /// after the insertion position up by one.
+      ///
+      /// Because this object requires that all gradient points in the array
+      /// must be sorted by the position, the new gradient point should be
+      /// inserted at the position in which the order is still preserved.
+      void InsertAtPos(int insertionPos, double gradientPos,
+                       const Color &gradientColor);
 
-        /// Determines the array index in which to insert the gradient point
-        /// into the internal gradient-point array.
-        ///
-        /// @param gradientPos The position of this gradient point.
-        ///
-        /// @returns The array index in which to insert the gradient point.
-        ///
-        /// @pre No two gradient points have the same input value.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the precondition.
-        ///
-        /// By inserting the gradient point at the returned array index, this
-        /// object ensures that the gradient-point array is sorted by input
-        /// value.  The code that maps a value to a color requires a sorted
-        /// gradient-point array.
-        int FindInsertionPos (double gradientPos);
+      /// Number of gradient points.
+      int m_gradientPointCount;
 
-        /// Inserts the gradient point at the specified position in the
-        /// internal gradient-point array.
-        ///
-        /// @param insertionPos The zero-based array position in which to
-        /// insert the gradient point.
-        /// @param gradientPos The position of this gradient point.
-        /// @param gradientColor The color of this gradient point.
-        ///
-        /// To make room for this new gradient point, this method reallocates
-        /// the gradient-point array and shifts all gradient points occurring
-        /// after the insertion position up by one.
-        ///
-        /// Because this object requires that all gradient points in the array
-        /// must be sorted by the position, the new gradient point should be
-        /// inserted at the position in which the order is still preserved.
-        void InsertAtPos (int insertionPos, double gradientPos,
-          const Color& gradientColor);
+      /// Array that stores the gradient points.
+      GradientPoint *m_pGradientPoints;
 
-        /// Number of gradient points.
-        int m_gradientPointCount;
-
-        /// Array that stores the gradient points.
-        GradientPoint* m_pGradientPoints;
-
-        /// A color object that is used by a gradient object to store a
-        /// temporary value.
-        mutable Color m_workingColor;
+      /// A color object that is used by a gradient object to store a
+      /// temporary value.
+      mutable Color m_workingColor;
     };
 
     /// Implements a noise map, a 2-dimensional array of floating-point
@@ -360,351 +352,347 @@ namespace noise
     class NoiseMap
     {
 
-      public:
+    public:
+      /// Constructor.
+      ///
+      /// Creates an empty noise map.
+      NoiseMap();
 
-        /// Constructor.
-        ///
-        /// Creates an empty noise map.
-        NoiseMap ();
+      /// Constructor.
+      ///
+      /// @param width The width of the new noise map.
+      /// @param height The height of the new noise map.
+      ///
+      /// @pre The width and height values are positive.
+      /// @pre The width and height values do not exceed the maximum
+      /// possible width and height for the noise map.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// Creates a noise map with uninitialized values.
+      ///
+      /// It is considered an error if the specified dimensions are not
+      /// positive.
+      NoiseMap(int width, int height);
 
-        /// Constructor.
-        ///
-        /// @param width The width of the new noise map.
-        /// @param height The height of the new noise map.
-        ///
-        /// @pre The width and height values are positive.
-        /// @pre The width and height values do not exceed the maximum
-        /// possible width and height for the noise map.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// Creates a noise map with uninitialized values.
-        ///
-        /// It is considered an error if the specified dimensions are not
-        /// positive.
-        NoiseMap (int width, int height);
+      /// Copy constructor.
+      ///
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      NoiseMap(const NoiseMap &rhs);
 
-        /// Copy constructor.
-        ///
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        NoiseMap (const NoiseMap& rhs);
+      /// Destructor.
+      ///
+      /// Frees the allocated memory for the noise map.
+      ~NoiseMap();
 
-        /// Destructor.
-        ///
-        /// Frees the allocated memory for the noise map.
-        ~NoiseMap ();
+      /// Assignment operator.
+      ///
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// @returns Reference to self.
+      ///
+      /// Creates a copy of the noise map.
+      NoiseMap &operator=(const NoiseMap &rhs);
 
-        /// Assignment operator.
-        ///
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// @returns Reference to self.
-        ///
-        /// Creates a copy of the noise map.
-        NoiseMap& operator= (const NoiseMap& rhs);
+      /// Clears the noise map to a specified value.
+      ///
+      /// @param value The value that all positions within the noise map are
+      /// cleared to.
+      void Clear(float value);
 
-        /// Clears the noise map to a specified value.
-        ///
-        /// @param value The value that all positions within the noise map are
-        /// cleared to.
-        void Clear (float value);
+      /// Returns the value used for all positions outside of the noise map.
+      ///
+      /// @returns The value used for all positions outside of the noise
+      /// map.
+      ///
+      /// All positions outside of the noise map are assumed to have a
+      /// common value known as the <i>border value</i>.
+      float GetBorderValue() const
+      {
+        return m_borderValue;
+      }
 
-        /// Returns the value used for all positions outside of the noise map.
-        ///
-        /// @returns The value used for all positions outside of the noise
-        /// map.
-        ///
-        /// All positions outside of the noise map are assumed to have a
-        /// common value known as the <i>border value</i>.
-        float GetBorderValue () const
-        {
-          return m_borderValue;
-        }
+      /// Returns a const pointer to a slab.
+      ///
+      /// @returns A const pointer to a slab at the position (0, 0), or
+      /// @a NULL if the noise map is empty.
+      const float *GetConstSlabPtr() const
+      {
+        return m_pNoiseMap;
+      }
 
-        /// Returns a const pointer to a slab.
-        ///
-        /// @returns A const pointer to a slab at the position (0, 0), or
-        /// @a NULL if the noise map is empty.
-        const float* GetConstSlabPtr () const
-        {
-          return m_pNoiseMap;
-        }
+      /// Returns a const pointer to a slab at the specified row.
+      ///
+      /// @param row The row, or @a y coordinate.
+      ///
+      /// @returns A const pointer to a slab at the position ( 0, @a row ),
+      /// or @a NULL if the noise map is empty.
+      ///
+      /// @pre The coordinates must exist within the bounds of the noise
+      /// map.
+      ///
+      /// This method does not perform bounds checking so be careful when
+      /// calling it.
+      const float *GetConstSlabPtr(int row) const
+      {
+        return GetConstSlabPtr(0, row);
+      }
 
-        /// Returns a const pointer to a slab at the specified row.
-        ///
-        /// @param row The row, or @a y coordinate.
-        ///
-        /// @returns A const pointer to a slab at the position ( 0, @a row ),
-        /// or @a NULL if the noise map is empty.
-        ///
-        /// @pre The coordinates must exist within the bounds of the noise
-        /// map.
-        ///
-        /// This method does not perform bounds checking so be careful when
-        /// calling it.
-        const float* GetConstSlabPtr (int row) const
-        {
-          return GetConstSlabPtr (0, row);
-        }
+      /// Returns a const pointer to a slab at the specified position.
+      ///
+      /// @param x The x coordinate of the position.
+      /// @param y The y coordinate of the position.
+      ///
+      /// @returns A const pointer to a slab at the position ( @a x, @a y ),
+      /// or @a NULL if the noise map is empty.
+      ///
+      /// @pre The coordinates must exist within the bounds of the noise
+      /// map.
+      ///
+      /// This method does not perform bounds checking so be careful when
+      /// calling it.
+      const float *GetConstSlabPtr(int x, int y) const
+      {
+        return m_pNoiseMap + (size_t)x + (size_t)m_stride * (size_t)y;
+      }
 
-        /// Returns a const pointer to a slab at the specified position.
-        ///
-        /// @param x The x coordinate of the position.
-        /// @param y The y coordinate of the position.
-        ///
-        /// @returns A const pointer to a slab at the position ( @a x, @a y ),
-        /// or @a NULL if the noise map is empty.
-        ///
-        /// @pre The coordinates must exist within the bounds of the noise
-        /// map.
-        ///
-        /// This method does not perform bounds checking so be careful when
-        /// calling it.
-        const float* GetConstSlabPtr (int x, int y) const
-        {
-          return m_pNoiseMap + (size_t)x + (size_t)m_stride * (size_t)y;
-        }
+      /// Returns the height of the noise map.
+      ///
+      /// @returns The height of the noise map.
+      int GetHeight() const
+      {
+        return m_height;
+      }
 
-        /// Returns the height of the noise map.
-        ///
-        /// @returns The height of the noise map.
-        int GetHeight () const
-        {
-          return m_height;
-        }
+      /// Returns the amount of memory allocated for this noise map.
+      ///
+      /// @returns The amount of memory allocated for this noise map.
+      ///
+      /// This method returns the number of @a float values allocated.
+      size_t GetMemUsed() const
+      {
+        return m_memUsed;
+      }
 
-        /// Returns the amount of memory allocated for this noise map.
-        ///
-        /// @returns The amount of memory allocated for this noise map.
-        ///
-        /// This method returns the number of @a float values allocated.
-        size_t GetMemUsed () const
-        {
-          return m_memUsed;
-        }
+      /// Returns a pointer to a slab.
+      ///
+      /// @returns A pointer to a slab at the position (0, 0), or @a NULL if
+      /// the noise map is empty.
+      float *GetSlabPtr()
+      {
+        return m_pNoiseMap;
+      }
 
-        /// Returns a pointer to a slab.
-        ///
-        /// @returns A pointer to a slab at the position (0, 0), or @a NULL if
-        /// the noise map is empty.
-        float* GetSlabPtr ()
-        {
-          return m_pNoiseMap;
-        }
+      /// Returns a pointer to a slab at the specified row.
+      ///
+      /// @param row The row, or @a y coordinate.
+      ///
+      /// @returns A pointer to a slab at the position ( 0, @a row ), or
+      /// @a NULL if the noise map is empty.
+      ///
+      /// @pre The coordinates must exist within the bounds of the noise
+      /// map.
+      ///
+      /// This method does not perform bounds checking so be careful when
+      /// calling it.
+      float *GetSlabPtr(int row)
+      {
+        return GetSlabPtr(0, row);
+      }
 
-        /// Returns a pointer to a slab at the specified row.
-        ///
-        /// @param row The row, or @a y coordinate.
-        ///
-        /// @returns A pointer to a slab at the position ( 0, @a row ), or
-        /// @a NULL if the noise map is empty.
-        ///
-        /// @pre The coordinates must exist within the bounds of the noise
-        /// map.
-        ///
-        /// This method does not perform bounds checking so be careful when
-        /// calling it.
-        float* GetSlabPtr (int row)
-        {
-          return GetSlabPtr (0, row);
-        }
+      /// Returns a pointer to a slab at the specified position.
+      ///
+      /// @param x The x coordinate of the position.
+      /// @param y The y coordinate of the position.
+      ///
+      /// @returns A pointer to a slab at the position ( @a x, @a y ) or
+      /// @a NULL if the noise map is empty.
+      ///
+      /// @pre The coordinates must exist within the bounds of the noise
+      /// map.
+      ///
+      /// This method does not perform bounds checking so be careful when
+      /// calling it.
+      float *GetSlabPtr(int x, int y)
+      {
+        return m_pNoiseMap + (size_t)x + (size_t)m_stride * (size_t)y;
+      }
 
-        /// Returns a pointer to a slab at the specified position.
-        ///
-        /// @param x The x coordinate of the position.
-        /// @param y The y coordinate of the position.
-        ///
-        /// @returns A pointer to a slab at the position ( @a x, @a y ) or
-        /// @a NULL if the noise map is empty.
-        ///
-        /// @pre The coordinates must exist within the bounds of the noise
-        /// map.
-        ///
-        /// This method does not perform bounds checking so be careful when
-        /// calling it.
-        float* GetSlabPtr (int x, int y)
-        {
-          return m_pNoiseMap + (size_t)x + (size_t)m_stride * (size_t)y;
-        }
+      /// Returns the stride amount of the noise map.
+      ///
+      /// @returns The stride amount of the noise map.
+      ///
+      /// - The <i>stride amount</i> is the offset between the starting
+      ///   points of any two adjacent slabs in a noise map.
+      /// - The stride amount is measured by the number of @a float values
+      ///   between these two points, not by the number of bytes.
+      int GetStride() const
+      {
+        return m_stride;
+      }
 
-        /// Returns the stride amount of the noise map.
-        ///
-        /// @returns The stride amount of the noise map.
-        ///
-        /// - The <i>stride amount</i> is the offset between the starting
-        ///   points of any two adjacent slabs in a noise map.
-        /// - The stride amount is measured by the number of @a float values
-        ///   between these two points, not by the number of bytes.
-        int GetStride () const
-        {
-          return m_stride;
-        }
+      /// Returns a value from the specified position in the noise map.
+      ///
+      /// @param x The x coordinate of the position.
+      /// @param y The y coordinate of the position.
+      ///
+      /// @returns The value at that position.
+      ///
+      /// This method returns the border value if the coordinates exist
+      /// outside of the noise map.
+      float GetValue(int x, int y) const;
 
-        /// Returns a value from the specified position in the noise map.
-        ///
-        /// @param x The x coordinate of the position.
-        /// @param y The y coordinate of the position.
-        ///
-        /// @returns The value at that position.
-        ///
-        /// This method returns the border value if the coordinates exist
-        /// outside of the noise map.
-        float GetValue (int x, int y) const;
+      /// Returns the width of the noise map.
+      ///
+      /// @returns The width of the noise map.
+      int GetWidth() const
+      {
+        return m_width;
+      }
 
-        /// Returns the width of the noise map.
-        ///
-        /// @returns The width of the noise map.
-        int GetWidth () const
-        {
-          return m_width;
-        }
+      /// Reallocates the noise map to recover wasted memory.
+      ///
+      /// @throw noise::ExceptionOutOfMemory Out of memory.  (Yes, this
+      /// method can return an out-of-memory exception because two noise
+      /// maps will temporarily exist in memory during this call.)
+      ///
+      /// The contents of the noise map is unaffected.
+      void ReclaimMem();
 
-        /// Reallocates the noise map to recover wasted memory.
-        ///
-        /// @throw noise::ExceptionOutOfMemory Out of memory.  (Yes, this
-        /// method can return an out-of-memory exception because two noise
-        /// maps will temporarily exist in memory during this call.)
-        ///
-        /// The contents of the noise map is unaffected.
-        void ReclaimMem ();
+      /// Sets the value to use for all positions outside of the noise map.
+      ///
+      /// @param borderValue The value to use for all positions outside of
+      /// the noise map.
+      ///
+      /// All positions outside of the noise map are assumed to have a
+      /// common value known as the <i>border value</i>.
+      void SetBorderValue(float borderValue)
+      {
+        m_borderValue = borderValue;
+      }
 
-        /// Sets the value to use for all positions outside of the noise map.
-        ///
-        /// @param borderValue The value to use for all positions outside of
-        /// the noise map.
-        ///
-        /// All positions outside of the noise map are assumed to have a
-        /// common value known as the <i>border value</i>.
-        void SetBorderValue (float borderValue)
-        {
-          m_borderValue = borderValue;
-        }
+      /// Sets the new size for the noise map.
+      ///
+      /// @param width The new width for the noise map.
+      /// @param height The new height for the noise map.
+      ///
+      /// @pre The width and height values are positive.
+      /// @pre The width and height values do not exceed the maximum
+      /// possible width and height for the noise map.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// On exit, the contents of the noise map are undefined.
+      ///
+      /// If the @a OUT_OF_MEMORY exception occurs, this noise map object
+      /// becomes empty.
+      ///
+      /// If the @a INVALID_PARAM exception occurs, the noise map is
+      /// unmodified.
+      void SetSize(int width, int height);
 
-        /// Sets the new size for the noise map.
-        ///
-        /// @param width The new width for the noise map.
-        /// @param height The new height for the noise map.
-        ///
-        /// @pre The width and height values are positive.
-        /// @pre The width and height values do not exceed the maximum
-        /// possible width and height for the noise map.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// On exit, the contents of the noise map are undefined.
-        ///
-        /// If the @a OUT_OF_MEMORY exception occurs, this noise map object
-        /// becomes empty.
-        ///
-        /// If the @a INVALID_PARAM exception occurs, the noise map is
-        /// unmodified.
-        void SetSize (int width, int height);
+      /// Sets a value at a specified position in the noise map.
+      ///
+      /// @param x The x coordinate of the position.
+      /// @param y The y coordinate of the position.
+      /// @param value The value to set at the given position.
+      ///
+      /// This method does nothing if the noise map object is empty or the
+      /// position is outside the bounds of the noise map.
+      void SetValue(int x, int y, float value);
 
-        /// Sets a value at a specified position in the noise map.
-        ///
-        /// @param x The x coordinate of the position.
-        /// @param y The y coordinate of the position.
-        /// @param value The value to set at the given position.
-        ///
-        /// This method does nothing if the noise map object is empty or the
-        /// position is outside the bounds of the noise map.
-        void SetValue (int x, int y, float value);
+      /// Takes ownership of the buffer within the source noise map.
+      ///
+      /// @param source The source noise map.
+      ///
+      /// On exit, the source noise map object becomes empty.
+      ///
+      /// This method only moves the buffer pointer so this method is very
+      /// quick.
+      void TakeOwnership(NoiseMap &source);
 
-        /// Takes ownership of the buffer within the source noise map.
-        ///
-        /// @param source The source noise map.
-        ///
-        /// On exit, the source noise map object becomes empty.
-        ///
-        /// This method only moves the buffer pointer so this method is very
-        /// quick.
-        void TakeOwnership (NoiseMap& source);
+    private:
+      /// Returns the minimum amount of memory required to store a noise map
+      /// of the specified size.
+      ///
+      /// @param width The width of the noise map.
+      /// @param height The height of the noise map.
+      ///
+      /// @returns The minimum amount of memory required to store the noise
+      /// map.
+      ///
+      /// The returned value is measured by the number of @a float values
+      /// required to store the noise map, not by the number of bytes.
+      size_t CalcMinMemUsage(int width, int height) const
+      {
+        return CalcStride((size_t)width) * (size_t)height;
+      }
 
-      private:
+      /// Calculates the stride amount for a noise map.
+      ///
+      /// @param width The width of the noise map.
+      ///
+      /// @returns The stride amount.
+      ///
+      /// - The <i>stride amount</i> is the offset between the starting
+      ///   points of any two adjacent slabs in a noise map.
+      /// - The stride amount is measured by the number of @a float values
+      ///   between these two points, not by the number of bytes.
+      size_t CalcStride(int width) const
+      {
+        return (size_t)(((width + RASTER_STRIDE_BOUNDARY - 1) / RASTER_STRIDE_BOUNDARY) * RASTER_STRIDE_BOUNDARY);
+      }
 
-        /// Returns the minimum amount of memory required to store a noise map
-        /// of the specified size.
-        ///
-        /// @param width The width of the noise map.
-        /// @param height The height of the noise map.
-        ///
-        /// @returns The minimum amount of memory required to store the noise
-        /// map.
-        ///
-        /// The returned value is measured by the number of @a float values
-        /// required to store the noise map, not by the number of bytes.
-        size_t CalcMinMemUsage (int width, int height) const
-        {
-          return CalcStride ((size_t)width) * (size_t)height;
-        }
+      /// Copies the contents of the buffer in the source noise map into
+      /// this noise map.
+      ///
+      /// @param source The source noise map.
+      ///
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// This method reallocates the buffer in this noise map object if
+      /// necessary.
+      ///
+      /// @warning This method calls the standard library function
+      /// @a memcpy, which probably violates the DMCA because it can be used
+      //. to make a bitwise copy of anything, like, say, a DVD.  Don't call
+      /// this method if you live in the USA.
+      void CopyNoiseMap(const NoiseMap &source);
 
-        /// Calculates the stride amount for a noise map.
-        ///
-        /// @param width The width of the noise map.
-        ///
-        /// @returns The stride amount.
-        ///
-        /// - The <i>stride amount</i> is the offset between the starting
-        ///   points of any two adjacent slabs in a noise map.
-        /// - The stride amount is measured by the number of @a float values
-        ///   between these two points, not by the number of bytes.
-        size_t CalcStride (int width) const
-        {
-          return (size_t)(((width + RASTER_STRIDE_BOUNDARY - 1)
-            / RASTER_STRIDE_BOUNDARY) * RASTER_STRIDE_BOUNDARY);
-        }
+      /// Resets the noise map object.
+      ///
+      /// This method is similar to the InitObj() method, except this method
+      /// deletes the buffer in this noise map.
+      void DeleteNoiseMapAndReset();
 
-        /// Copies the contents of the buffer in the source noise map into
-        /// this noise map.
-        ///
-        /// @param source The source noise map.
-        ///
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// This method reallocates the buffer in this noise map object if
-        /// necessary.
-        ///
-        /// @warning This method calls the standard library function
-        /// @a memcpy, which probably violates the DMCA because it can be used
-        //. to make a bitwise copy of anything, like, say, a DVD.  Don't call
-        /// this method if you live in the USA.
-        void CopyNoiseMap (const NoiseMap& source);
+      /// Initializes the noise map object.
+      ///
+      /// @pre Must be called during object construction.
+      /// @pre The noise map buffer must not exist.
+      void InitObj();
 
-        /// Resets the noise map object.
-        ///
-        /// This method is similar to the InitObj() method, except this method
-        /// deletes the buffer in this noise map.
-        void DeleteNoiseMapAndReset ();
+      /// Value used for all positions outside of the noise map.
+      float m_borderValue;
 
-        /// Initializes the noise map object.
-        ///
-        /// @pre Must be called during object construction.
-        /// @pre The noise map buffer must not exist.
-        void InitObj ();
+      /// The current height of the noise map.
+      int m_height;
 
-        /// Value used for all positions outside of the noise map.
-        float m_borderValue;
+      /// The amount of memory allocated for this noise map.
+      ///
+      /// This value is equal to the number of @a float values allocated for
+      /// the noise map, not the number of bytes.
+      size_t m_memUsed;
 
-        /// The current height of the noise map.
-        int m_height;
+      /// A pointer to the noise map buffer.
+      float *m_pNoiseMap;
 
-        /// The amount of memory allocated for this noise map.
-        ///
-        /// This value is equal to the number of @a float values allocated for
-        /// the noise map, not the number of bytes.
-        size_t m_memUsed;
+      /// The stride amount of the noise map.
+      int m_stride;
 
-        /// A pointer to the noise map buffer.
-        float* m_pNoiseMap;
-
-        /// The stride amount of the noise map.
-        int m_stride;
-
-        /// The current width of the noise map.
-        int m_width;
-
+      /// The current width of the noise map.
+      int m_width;
     };
 
     /// Implements an image, a 2-dimensional array of color values.
@@ -757,347 +745,343 @@ namespace noise
     class Image
     {
 
-      public:
+    public:
+      /// Constructor.
+      ///
+      /// Creates an empty image.
+      Image();
 
-        /// Constructor.
-        ///
-        /// Creates an empty image.
-        Image ();
+      /// Constructor.
+      ///
+      /// @param width The width of the new image.
+      /// @param height The height of the new image.
+      ///
+      /// @pre The width and height values are positive.
+      /// @pre The width and height values do not exceed the maximum
+      /// possible width and height for the image.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// Creates an image with uninitialized color values.
+      ///
+      /// It is considered an error if the specified dimensions are not
+      /// positive.
+      Image(int width, int height);
 
-        /// Constructor.
-        ///
-        /// @param width The width of the new image.
-        /// @param height The height of the new image.
-        ///
-        /// @pre The width and height values are positive.
-        /// @pre The width and height values do not exceed the maximum
-        /// possible width and height for the image.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// Creates an image with uninitialized color values.
-        ///
-        /// It is considered an error if the specified dimensions are not
-        /// positive.
-        Image (int width, int height);
+      /// Copy constructor.
+      ///
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      Image(const Image &rhs);
 
-        /// Copy constructor.
-        ///
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        Image  (const Image& rhs);
+      /// Destructor.
+      ///
+      /// Frees the allocated memory for the image.
+      ~Image();
 
-        /// Destructor.
-        ///
-        /// Frees the allocated memory for the image.
-        ~Image ();
+      /// Assignment operator.
+      ///
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// @returns Reference to self.
+      ///
+      /// Creates a copy of the image.
+      Image &operator=(const Image &rhs);
 
-        /// Assignment operator.
-        ///
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// @returns Reference to self.
-        ///
-        /// Creates a copy of the image.
-        Image& operator= (const Image& rhs);
+      /// Clears the image to a specified color value.
+      ///
+      /// @param value The color value that all positions within the image
+      /// are cleared to.
+      void Clear(const Color &value);
 
-        /// Clears the image to a specified color value.
-        ///
-        /// @param value The color value that all positions within the image
-        /// are cleared to.
-        void Clear (const Color& value);
+      /// Returns the color value used for all positions outside of the
+      /// image.
+      ///
+      /// @returns The color value used for all positions outside of the
+      /// image.
+      ///
+      /// All positions outside of the image are assumed to have a common
+      /// color value known as the <i>border value</i>.
+      Color GetBorderValue() const
+      {
+        return m_borderValue;
+      }
 
-        /// Returns the color value used for all positions outside of the
-        /// image.
-        ///
-        /// @returns The color value used for all positions outside of the
-        /// image.
-        ///
-        /// All positions outside of the image are assumed to have a common
-        /// color value known as the <i>border value</i>.
-        Color GetBorderValue () const
-        {
-          return m_borderValue;
-        }
+      /// Returns a const pointer to a slab.
+      ///
+      /// @returns A const pointer to a slab at the position (0, 0), or
+      /// @a NULL if the image is empty.
+      const Color *GetConstSlabPtr() const
+      {
+        return m_pImage;
+      }
 
-        /// Returns a const pointer to a slab.
-        ///
-        /// @returns A const pointer to a slab at the position (0, 0), or
-        /// @a NULL if the image is empty.
-        const Color* GetConstSlabPtr () const
-        {
-          return m_pImage;
-        }
+      /// Returns a const pointer to a slab at the specified row.
+      ///
+      /// @param row The row, or @a y coordinate.
+      ///
+      /// @returns A const pointer to a slab at the position ( 0, @a row ),
+      /// or @a NULL if the image is empty.
+      ///
+      /// @pre The coordinates must exist within the bounds of the image.
+      ///
+      /// This method does not perform bounds checking so be careful when
+      /// calling it.
+      const Color *GetConstSlabPtr(int row) const
+      {
+        return GetConstSlabPtr(0, row);
+      }
 
-        /// Returns a const pointer to a slab at the specified row.
-        ///
-        /// @param row The row, or @a y coordinate.
-        ///
-        /// @returns A const pointer to a slab at the position ( 0, @a row ),
-        /// or @a NULL if the image is empty.
-        ///
-        /// @pre The coordinates must exist within the bounds of the image.
-        ///
-        /// This method does not perform bounds checking so be careful when
-        /// calling it.
-        const Color* GetConstSlabPtr (int row) const
-        {
-          return GetConstSlabPtr (0, row);
-        }
+      /// Returns a const pointer to a slab at the specified position.
+      ///
+      /// @param x The x coordinate of the position.
+      /// @param y The y coordinate of the position.
+      ///
+      /// @returns A const pointer to a slab at the position ( @a x, @a y ),
+      /// or @a NULL if the image is empty.
+      ///
+      /// @pre The coordinates must exist within the bounds of the image.
+      ///
+      /// This method does not perform bounds checking so be careful when
+      /// calling it.
+      const Color *GetConstSlabPtr(int x, int y) const
+      {
+        return m_pImage + (size_t)x + (size_t)m_stride * (size_t)y;
+      }
 
-        /// Returns a const pointer to a slab at the specified position.
-        ///
-        /// @param x The x coordinate of the position.
-        /// @param y The y coordinate of the position.
-        ///
-        /// @returns A const pointer to a slab at the position ( @a x, @a y ),
-        /// or @a NULL if the image is empty.
-        ///
-        /// @pre The coordinates must exist within the bounds of the image.
-        ///
-        /// This method does not perform bounds checking so be careful when
-        /// calling it.
-        const Color* GetConstSlabPtr (int x, int y) const
-        {
-          return m_pImage + (size_t)x + (size_t)m_stride * (size_t)y;
-        }
+      /// Returns the height of the image.
+      ///
+      /// @returns The height of the image.
+      int GetHeight() const
+      {
+        return m_height;
+      }
 
-        /// Returns the height of the image.
-        ///
-        /// @returns The height of the image.
-        int GetHeight () const
-        {
-          return m_height;
-        }
+      /// Returns the amount of memory allocated for this image.
+      ///
+      /// @returns The amount of memory allocated for this image.
+      ///
+      /// This method returns the number of Color objects allocated.
+      size_t GetMemUsed() const
+      {
+        return m_memUsed;
+      }
 
-        /// Returns the amount of memory allocated for this image.
-        ///
-        /// @returns The amount of memory allocated for this image.
-        ///
-        /// This method returns the number of Color objects allocated.
-        size_t GetMemUsed () const
-        {
-          return m_memUsed;
-        }
+      /// Returns a pointer to a slab.
+      ///
+      /// @returns A pointer to a slab at the position (0, 0), or @a NULL if
+      /// the image is empty.
+      Color *GetSlabPtr()
+      {
+        return m_pImage;
+      }
 
-        /// Returns a pointer to a slab.
-        ///
-        /// @returns A pointer to a slab at the position (0, 0), or @a NULL if
-        /// the image is empty.
-        Color* GetSlabPtr ()
-        {
-          return m_pImage;
-        }
+      /// Returns a pointer to a slab at the specified row.
+      ///
+      /// @param row The row, or @a y coordinate.
+      ///
+      /// @returns A pointer to a slab at the position ( 0, @a row ), or
+      /// @a NULL if the image is empty.
+      ///
+      /// @pre The coordinates must exist within the bounds of the image.
+      ///
+      /// This method does not perform bounds checking so be careful when
+      /// calling it.
+      Color *GetSlabPtr(int row)
+      {
+        return GetSlabPtr(0, row);
+      }
 
-        /// Returns a pointer to a slab at the specified row.
-        ///
-        /// @param row The row, or @a y coordinate.
-        ///
-        /// @returns A pointer to a slab at the position ( 0, @a row ), or
-        /// @a NULL if the image is empty.
-        ///
-        /// @pre The coordinates must exist within the bounds of the image.
-        ///
-        /// This method does not perform bounds checking so be careful when
-        /// calling it.
-        Color* GetSlabPtr (int row)
-        {
-          return GetSlabPtr (0, row);
-        }
+      /// Returns a pointer to a slab at the specified position.
+      ///
+      /// @param x The x coordinate of the position.
+      /// @param y The y coordinate of the position.
+      ///
+      /// @returns A pointer to a slab at the position ( @a x, @a y ), or
+      /// @a NULL if the image is empty.
+      ///
+      /// @pre The coordinates must exist within the bounds of the image.
+      ///
+      /// This method does not perform bounds checking so be careful when
+      /// calling it.
+      Color *GetSlabPtr(int x, int y)
+      {
+        return m_pImage + (size_t)x + (size_t)m_stride * (size_t)y;
+      }
 
-        /// Returns a pointer to a slab at the specified position.
-        ///
-        /// @param x The x coordinate of the position.
-        /// @param y The y coordinate of the position.
-        ///
-        /// @returns A pointer to a slab at the position ( @a x, @a y ), or
-        /// @a NULL if the image is empty.
-        ///
-        /// @pre The coordinates must exist within the bounds of the image.
-        ///
-        /// This method does not perform bounds checking so be careful when
-        /// calling it.
-        Color* GetSlabPtr (int x, int y)
-        {
-          return m_pImage + (size_t)x + (size_t)m_stride * (size_t)y;
-        }
+      /// Returns the stride amount of the image.
+      ///
+      /// @returns The stride amount of the image.
+      ///
+      /// - The <i>stride amount</i> is the offset between the starting
+      ///   points of any two adjacent slabs in an image.
+      /// - The stride amount is measured by the number of Color objects
+      ///   between these two points, not by the number of bytes.
+      int GetStride() const
+      {
+        return m_stride;
+      }
 
-        /// Returns the stride amount of the image.
-        ///
-        /// @returns The stride amount of the image.
-        ///
-        /// - The <i>stride amount</i> is the offset between the starting
-        ///   points of any two adjacent slabs in an image.
-        /// - The stride amount is measured by the number of Color objects
-        ///   between these two points, not by the number of bytes.
-        int GetStride () const
-        {
-          return m_stride;
-        }
+      /// Returns a color value from the specified position in the image.
+      ///
+      /// @param x The x coordinate of the position.
+      /// @param y The y coordinate of the position.
+      ///
+      /// @returns The color value at that position.
+      ///
+      /// This method returns the border value if the coordinates exist
+      /// outside of the image.
+      Color GetValue(int x, int y) const;
 
-        /// Returns a color value from the specified position in the image.
-        ///
-        /// @param x The x coordinate of the position.
-        /// @param y The y coordinate of the position.
-        ///
-        /// @returns The color value at that position.
-        ///
-        /// This method returns the border value if the coordinates exist
-        /// outside of the image.
-        Color GetValue (int x, int y) const;
+      /// Returns the width of the image.
+      ///
+      /// @returns The width of the image.
+      int GetWidth() const
+      {
+        return m_width;
+      }
 
-        /// Returns the width of the image.
-        ///
-        /// @returns The width of the image.
-        int GetWidth () const
-        {
-          return m_width;
-        }
+      /// Reallocates the image to recover wasted memory.
+      ///
+      /// @throw noise::ExceptionOutOfMemory Out of memory.  (Yes, this
+      /// method can return an out-of-memory exception because two images
+      /// will exist temporarily in memory during this call.)
+      ///
+      /// The contents of the image is unaffected.
+      void ReclaimMem();
 
-        /// Reallocates the image to recover wasted memory.
-        ///
-        /// @throw noise::ExceptionOutOfMemory Out of memory.  (Yes, this
-        /// method can return an out-of-memory exception because two images
-        /// will exist temporarily in memory during this call.)
-        ///
-        /// The contents of the image is unaffected.
-        void ReclaimMem ();
+      /// Sets the color value to use for all positions outside of the
+      /// image.
+      ///
+      /// @param borderValue The color value to use for all positions
+      /// outside of the image.
+      ///
+      /// All positions outside of the image are assumed to have a common
+      /// color value known as the <i>border value</i>.
+      void SetBorderValue(const Color &borderValue)
+      {
+        m_borderValue = borderValue;
+      }
 
-        /// Sets the color value to use for all positions outside of the
-        /// image.
-        ///
-        /// @param borderValue The color value to use for all positions
-        /// outside of the image.
-        ///
-        /// All positions outside of the image are assumed to have a common
-        /// color value known as the <i>border value</i>.
-        void SetBorderValue (const Color& borderValue)
-        {
-          m_borderValue = borderValue;
-        }
+      /// Sets the new size for the image.
+      ///
+      /// @param width The new width for the image.
+      /// @param height The new height for the image.
+      ///
+      /// @pre The width and height values are positive.
+      /// @pre The width and height values do not exceed the maximum
+      /// possible width and height for the image.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// On exit, the contents of the image are undefined.
+      ///
+      /// If the @a OUT_OF_MEMORY exception occurs, this image becomes
+      /// empty.
+      ///
+      /// If the @a INVALID_PARAM exception occurs, the image is unmodified.
+      void SetSize(int width, int height);
 
-        /// Sets the new size for the image.
-        ///
-        /// @param width The new width for the image.
-        /// @param height The new height for the image.
-        ///
-        /// @pre The width and height values are positive.
-        /// @pre The width and height values do not exceed the maximum
-        /// possible width and height for the image.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// On exit, the contents of the image are undefined.
-        ///
-        /// If the @a OUT_OF_MEMORY exception occurs, this image becomes
-        /// empty.
-        ///
-        /// If the @a INVALID_PARAM exception occurs, the image is unmodified.
-        void SetSize (int width, int height);
+      /// Sets a color value at a specified position in the image.
+      ///
+      /// @param x The x coordinate of the position.
+      /// @param y The y coordinate of the position.
+      /// @param value The color value to set at the given position.
+      ///
+      /// This method does nothing if the image is empty or the position is
+      /// outside the bounds of the image.
+      void SetValue(int x, int y, const Color &value);
 
-        /// Sets a color value at a specified position in the image.
-        ///
-        /// @param x The x coordinate of the position.
-        /// @param y The y coordinate of the position.
-        /// @param value The color value to set at the given position.
-        ///
-        /// This method does nothing if the image is empty or the position is
-        /// outside the bounds of the image.
-        void SetValue (int x, int y, const Color& value);
+      /// Takes ownership of the buffer within the source image.
+      ///
+      /// @param source The source image.
+      ///
+      /// On exit, the source image object becomes empty.
+      ///
+      /// This method only moves the buffer pointer so this method is very
+      /// quick.
+      void TakeOwnership(Image &source);
 
-        /// Takes ownership of the buffer within the source image.
-        ///
-        /// @param source The source image.
-        ///
-        /// On exit, the source image object becomes empty.
-        ///
-        /// This method only moves the buffer pointer so this method is very
-        /// quick.
-        void TakeOwnership (Image& source);
+    private:
+      /// Returns the minimum amount of memory required to store an image of
+      /// the specified size.
+      ///
+      /// @param width The width of the image.
+      /// @param height The height of the image.
+      ///
+      /// @returns The minimum amount of memory required to store the image.
+      ///
+      /// The returned color value is measured by the number of Color
+      /// objects required to store the image, not by the number of bytes.
+      size_t CalcMinMemUsage(int width, int height) const
+      {
+        return CalcStride((size_t)width) * (size_t)height;
+      }
 
-      private:
+      /// Calculates the stride amount for an image.
+      ///
+      /// @param width The width of the image.
+      ///
+      /// @returns The stride amount.
+      ///
+      /// - The <i>stride amount</i> is the offset between the starting
+      ///   points of any two adjacent slabs in an image.
+      /// - The stride amount is measured by the number of Color objects
+      ///   between these two points, not by the number of bytes.
+      size_t CalcStride(int width) const
+      {
+        return (size_t)(((width + RASTER_STRIDE_BOUNDARY - 1) / RASTER_STRIDE_BOUNDARY) * RASTER_STRIDE_BOUNDARY);
+      }
 
-        /// Returns the minimum amount of memory required to store an image of
-        /// the specified size.
-        ///
-        /// @param width The width of the image.
-        /// @param height The height of the image.
-        ///
-        /// @returns The minimum amount of memory required to store the image.
-        ///
-        /// The returned color value is measured by the number of Color
-        /// objects required to store the image, not by the number of bytes.
-        size_t CalcMinMemUsage (int width, int height) const
-        {
-          return CalcStride ((size_t)width) * (size_t)height;
-        }
+      /// Copies the contents of the buffer in the source image into this
+      /// image.
+      ///
+      /// @param source The source image.
+      ///
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// This method reallocates the buffer in this image object if
+      /// necessary.
+      ///
+      /// @warning This method calls the standard library function
+      /// @a memcpy, which probably violates the DMCA because it can be used
+      /// to make a bitwise copy of anything, like, say, a DVD.  Don't call
+      /// this method if you live in the USA.
+      void CopyImage(const Image &source);
 
-        /// Calculates the stride amount for an image.
-        ///
-        /// @param width The width of the image.
-        ///
-        /// @returns The stride amount.
-        ///
-        /// - The <i>stride amount</i> is the offset between the starting
-        ///   points of any two adjacent slabs in an image.
-        /// - The stride amount is measured by the number of Color objects
-        ///   between these two points, not by the number of bytes.
-        size_t CalcStride (int width) const
-        {
-          return (size_t)(((width + RASTER_STRIDE_BOUNDARY - 1)
-            / RASTER_STRIDE_BOUNDARY) * RASTER_STRIDE_BOUNDARY);
-        }
+      /// Resets the image object.
+      ///
+      /// This method is similar to the InitObj() method, except this method
+      /// deletes the memory allocated to the image.
+      void DeleteImageAndReset();
 
-        /// Copies the contents of the buffer in the source image into this
-        /// image.
-        ///
-        /// @param source The source image.
-        ///
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// This method reallocates the buffer in this image object if
-        /// necessary.
-        ///
-        /// @warning This method calls the standard library function
-        /// @a memcpy, which probably violates the DMCA because it can be used
-        /// to make a bitwise copy of anything, like, say, a DVD.  Don't call
-        /// this method if you live in the USA.
-        void CopyImage (const Image& source);
+      /// Initializes the image object.
+      ///
+      /// @pre Must be called during object construction.
+      /// @pre The image buffer must not exist.
+      void InitObj();
 
-        /// Resets the image object.
-        ///
-        /// This method is similar to the InitObj() method, except this method
-        /// deletes the memory allocated to the image.
-        void DeleteImageAndReset ();
+      /// The Color value used for all positions outside of the image.
+      Color m_borderValue;
 
-        /// Initializes the image object.
-        ///
-        /// @pre Must be called during object construction.
-        /// @pre The image buffer must not exist.
-        void InitObj ();
+      /// The current height of the image.
+      int m_height;
 
-        /// The Color value used for all positions outside of the image.
-        Color m_borderValue;
+      /// The amount of memory allocated for the image.
+      ///
+      /// This value is equal to the number of Color objects allocated for
+      /// the image, not the number of bytes.
+      size_t m_memUsed;
 
-        /// The current height of the image.
-        int m_height;
+      /// A pointer to the image buffer.
+      Color *m_pImage;
 
-        /// The amount of memory allocated for the image.
-        ///
-        /// This value is equal to the number of Color objects allocated for
-        /// the image, not the number of bytes.
-        size_t m_memUsed;
+      /// The stride amount of the image.
+      int m_stride;
 
-        /// A pointer to the image buffer.
-        Color* m_pImage;
-
-        /// The stride amount of the image.
-        int m_stride;
-
-        /// The current width of the image.
-        int m_width;
-
+      /// The current width of the image.
+      int m_width;
     };
 
     /// Windows bitmap image writer class.
@@ -1117,77 +1101,73 @@ namespace noise
     class WriterBMP
     {
 
-      public:
+    public:
+      /// Constructor.
+      WriterBMP() : m_pSourceImage(NULL)
+      {
+      }
 
-        /// Constructor.
-        WriterBMP ():
-          m_pSourceImage (NULL)
-        {
-        }
+      /// Returns the name of the file to write.
+      ///
+      /// @returns The name of the file to write.
+      std::string GetDestFilename() const
+      {
+        return m_destFilename;
+      }
 
-        /// Returns the name of the file to write.
-        ///
-        /// @returns The name of the file to write.
-        std::string GetDestFilename () const
-        {
-          return m_destFilename;
-        }
+      /// Sets the name of the file to write.
+      ///
+      /// @param filename The name of the file to write.
+      ///
+      /// Call this method before calling the WriteDestFile() method.
+      void SetDestFilename(const std::string &filename)
+      {
+        m_destFilename = filename;
+      }
 
-        /// Sets the name of the file to write.
-        ///
-        /// @param filename The name of the file to write.
-        ///
-        /// Call this method before calling the WriteDestFile() method.
-        void SetDestFilename (const std::string& filename)
-        {
-          m_destFilename = filename;
-        }
+      /// Sets the image object that is written to the file.
+      ///
+      /// @param sourceImage The image object to write.
+      ///
+      /// This object only stores a pointer to an image object, so make sure
+      /// this object exists before calling the WriteDestFile() method.
+      void SetSourceImage(Image &sourceImage)
+      {
+        m_pSourceImage = &sourceImage;
+      }
 
-        /// Sets the image object that is written to the file.
-        ///
-        /// @param sourceImage The image object to write.
-        ///
-        /// This object only stores a pointer to an image object, so make sure
-        /// this object exists before calling the WriteDestFile() method.
-        void SetSourceImage (Image& sourceImage)
-        {
-          m_pSourceImage = &sourceImage;
-        }
+      /// Writes the contents of the image object to the file.
+      ///
+      /// @pre SetDestFilename() has been previously called.
+      /// @pre SetSourceImage() has been previously called.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      /// @throw noise::ExceptionUnknown An unknown exception occurred.
+      /// Possibly the file could not be written.
+      ///
+      /// This method encodes the contents of the image and writes it to a
+      /// file.  Before calling this method, call the SetSourceImage()
+      /// method to specify the image, then call the SetDestFilename()
+      /// method to specify the name of the file to write.
+      void WriteDestFile();
 
-        /// Writes the contents of the image object to the file.
-        ///
-        /// @pre SetDestFilename() has been previously called.
-        /// @pre SetSourceImage() has been previously called.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        /// @throw noise::ExceptionUnknown An unknown exception occurred.
-        /// Possibly the file could not be written.
-        ///
-        /// This method encodes the contents of the image and writes it to a
-        /// file.  Before calling this method, call the SetSourceImage()
-        /// method to specify the image, then call the SetDestFilename()
-        /// method to specify the name of the file to write.
-        void WriteDestFile ();
+    protected:
+      /// Calculates the width of one horizontal line in the file, in bytes.
+      ///
+      /// @param width The width of the image, in points.
+      ///
+      /// @returns The width of one horizontal line in the file.
+      ///
+      /// Windows bitmap files require that the width of one horizontal line
+      /// must be aligned to a 32-bit boundary.
+      int CalcWidthByteCount(int width) const;
 
-      protected:
+      /// Name of the file to write.
+      std::string m_destFilename;
 
-        /// Calculates the width of one horizontal line in the file, in bytes.
-        ///
-        /// @param width The width of the image, in points.
-        ///
-        /// @returns The width of one horizontal line in the file.
-        ///
-        /// Windows bitmap files require that the width of one horizontal line
-        /// must be aligned to a 32-bit boundary.
-        int CalcWidthByteCount (int width) const;
-
-        /// Name of the file to write.
-        std::string m_destFilename;
-
-        /// A pointer to the image object that will be written to the file.
-        Image* m_pSourceImage;
-
+      /// A pointer to the image object that will be written to the file.
+      Image *m_pSourceImage;
     };
 
     /// Terragen Terrain writer class.
@@ -1213,101 +1193,97 @@ namespace noise
     class WriterTER
     {
 
-      public:
+    public:
+      /// Constructor.
+      WriterTER()
+          : m_metersPerPoint(DEFAULT_METERS_PER_POINT), m_pSourceNoiseMap(NULL)
+      {
+      }
 
-        /// Constructor.
-      WriterTER ()
-	: m_metersPerPoint (DEFAULT_METERS_PER_POINT)
-	, m_pSourceNoiseMap (NULL)
-        {
-        }
+      /// Returns the name of the file to write.
+      ///
+      /// @returns The name of the file to write.
+      std::string GetDestFilename() const
+      {
+        return m_destFilename;
+      }
 
-        /// Returns the name of the file to write.
-        ///
-        /// @returns The name of the file to write.
-        std::string GetDestFilename () const
-        {
-          return m_destFilename;
-        }
+      /// Returns the distance separating adjacent points in the noise map,
+      /// in meters.
+      ///
+      /// @returns The distance separating adjacent points in the noise map.
+      float GetMetersPerPoint() const
+      {
+        return m_metersPerPoint;
+      }
 
-        /// Returns the distance separating adjacent points in the noise map,
-        /// in meters.
-        ///
-        /// @returns The distance separating adjacent points in the noise map.
-        float GetMetersPerPoint () const
-        {
-          return m_metersPerPoint;
-        }
+      /// Sets the name of the file to write.
+      ///
+      /// @param filename The name of the file to write.
+      ///
+      /// Call this method before calling the WriteDestFile() method.
+      void SetDestFilename(const std::string &filename)
+      {
+        m_destFilename = filename;
+      }
 
-        /// Sets the name of the file to write.
-        ///
-        /// @param filename The name of the file to write.
-        ///
-        /// Call this method before calling the WriteDestFile() method.
-        void SetDestFilename (const std::string& filename)
-        {
-          m_destFilename = filename;
-        }
+      /// Sets the distance separating adjacent points in the noise map, in
+      /// meters.
+      ///
+      /// @param metersPerPoint The distance separating adjacent points in
+      /// the noise map.
+      void SetMetersPerPoint(float metersPerPoint)
+      {
+        m_metersPerPoint = metersPerPoint;
+      }
 
-        /// Sets the distance separating adjacent points in the noise map, in
-        /// meters.
-        ///
-        /// @param metersPerPoint The distance separating adjacent points in
-        /// the noise map.
-        void SetMetersPerPoint (float metersPerPoint)
-        {
-          m_metersPerPoint = metersPerPoint;
-        }
+      /// Sets the noise map object that is written to the file.
+      ///
+      /// @param sourceNoiseMap The noise map object to write.
+      ///
+      /// This object only stores a pointer to a noise map object, so make
+      /// sure this object exists before calling the WriteDestFile() method.
+      void SetSourceNoiseMap(NoiseMap &sourceNoiseMap)
+      {
+        m_pSourceNoiseMap = &sourceNoiseMap;
+      }
 
-        /// Sets the noise map object that is written to the file.
-        ///
-        /// @param sourceNoiseMap The noise map object to write.
-        ///
-        /// This object only stores a pointer to a noise map object, so make
-        /// sure this object exists before calling the WriteDestFile() method.
-        void SetSourceNoiseMap (NoiseMap& sourceNoiseMap)
-        {
-          m_pSourceNoiseMap = &sourceNoiseMap;
-        }
+      /// Writes the contents of the noise map object to the file.
+      ///
+      /// @pre SetDestFilename() has been previously called.
+      /// @pre SetSourceNoiseMap() has been previously called.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      /// @throw noise::ExceptionUnknown An unknown exception occurred.
+      /// Possibly the file could not be written.
+      ///
+      /// This method encodes the contents of the noise map and writes it to
+      /// a file.  Before calling this method, call the SetSourceNoiseMap()
+      /// method to specify the noise map, then call the SetDestFilename()
+      /// method to specify the name of the file to write.
+      ///
+      /// This object assumes that the noise values represent elevations in
+      /// meters.
+      void WriteDestFile();
 
-        /// Writes the contents of the noise map object to the file.
-        ///
-        /// @pre SetDestFilename() has been previously called.
-        /// @pre SetSourceNoiseMap() has been previously called.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        /// @throw noise::ExceptionUnknown An unknown exception occurred.
-        /// Possibly the file could not be written.
-        ///
-        /// This method encodes the contents of the noise map and writes it to
-        /// a file.  Before calling this method, call the SetSourceNoiseMap()
-        /// method to specify the noise map, then call the SetDestFilename()
-        /// method to specify the name of the file to write.
-        ///
-        /// This object assumes that the noise values represent elevations in
-        /// meters.
-        void WriteDestFile ();
+    protected:
+      /// Calculates the width of one horizontal line in the file, in bytes.
+      ///
+      /// @param width The width of the noise map, in points.
+      ///
+      /// @returns The width of one horizontal line in the file.
+      int CalcWidthByteCount(int width) const;
 
-      protected:
-    
-        /// Calculates the width of one horizontal line in the file, in bytes.
-        ///
-        /// @param width The width of the noise map, in points.
-        ///
-        /// @returns The width of one horizontal line in the file.
-        int CalcWidthByteCount (int width) const;
+      /// Name of the file to write.
+      std::string m_destFilename;
 
-        /// Name of the file to write.
-        std::string m_destFilename;
+      /// The distance separating adjacent points in the noise map, in
+      /// meters.
+      float m_metersPerPoint;
 
-        /// The distance separating adjacent points in the noise map, in
-        /// meters.
-        float m_metersPerPoint;
-
-        /// A pointer to the noise map that will be written to the file.
-        NoiseMap* m_pSourceNoiseMap;
-
+      /// A pointer to the noise map that will be written to the file.
+      NoiseMap *m_pSourceNoiseMap;
     };
 
     /// Abstract base class for a noise-map builder
@@ -1345,131 +1321,128 @@ namespace noise
     class NoiseMapBuilder
     {
 
-      public:
+    public:
+      /// Constructor.
+      NoiseMapBuilder();
 
-        /// Constructor.
-        NoiseMapBuilder ();
+      /// Builds the noise map.
+      ///
+      /// @pre SetBounds() was previously called.
+      /// @pre SetDestNoiseMap() was previously called.
+      /// @pre SetSourceModule() was previously called.
+      /// @pre The width and height values specified by SetDestSize() are
+      /// positive.
+      /// @pre The width and height values specified by SetDestSize() do not
+      /// exceed the maximum possible width and height for the noise map.
+      ///
+      /// @post The original contents of the destination noise map is
+      /// destroyed.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      /// @throw noise::ExceptionOutOfMemory Out of memory.
+      ///
+      /// If this method is successful, the destination noise map contains
+      /// the coherent-noise values from the noise module specified by
+      /// SetSourceModule().
+      virtual void Build() = 0;
 
-        /// Builds the noise map.
-        ///
-        /// @pre SetBounds() was previously called.
-        /// @pre SetDestNoiseMap() was previously called.
-        /// @pre SetSourceModule() was previously called.
-        /// @pre The width and height values specified by SetDestSize() are
-        /// positive.
-        /// @pre The width and height values specified by SetDestSize() do not
-        /// exceed the maximum possible width and height for the noise map.
-        ///
-        /// @post The original contents of the destination noise map is
-        /// destroyed.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        /// @throw noise::ExceptionOutOfMemory Out of memory.
-        ///
-        /// If this method is successful, the destination noise map contains
-        /// the coherent-noise values from the noise module specified by
-        /// SetSourceModule().
-        virtual void Build () = 0;
+      /// Returns the height of the destination noise map.
+      ///
+      /// @returns The height of the destination noise map, in points.
+      ///
+      /// This object does not change the height in the destination noise
+      /// map object until the Build() method is called.
+      double GetDestHeight() const
+      {
+        return m_destHeight;
+      }
 
-        /// Returns the height of the destination noise map.
-        ///
-        /// @returns The height of the destination noise map, in points.
-        ///
-        /// This object does not change the height in the destination noise
-        /// map object until the Build() method is called.
-        double GetDestHeight () const
-        {
-          return m_destHeight;
-        }
+      /// Returns the width of the destination noise map.
+      ///
+      /// @returns The width of the destination noise map, in points.
+      ///
+      /// This object does not change the height in the destination noise
+      /// map object until the Build() method is called.
+      double GetDestWidth() const
+      {
+        return m_destWidth;
+      }
 
-        /// Returns the width of the destination noise map.
-        ///
-        /// @returns The width of the destination noise map, in points.
-        ///
-        /// This object does not change the height in the destination noise
-        /// map object until the Build() method is called.
-        double GetDestWidth () const
-        {
-          return m_destWidth;
-        }
+      /// Sets the callback function that Build() calls each time it fills a
+      /// row of the noise map with coherent-noise values.
+      ///
+      /// @param pCallback The callback function.
+      ///
+      /// This callback function has a single integer parameter that
+      /// contains a count of the rows that have been completed.  It returns
+      /// void.  Pass a function with this signature to the SetCallback()
+      /// method.
+      void SetCallback(NoiseMapCallback pCallback);
 
-        /// Sets the callback function that Build() calls each time it fills a
-        /// row of the noise map with coherent-noise values.
-        ///
-        /// @param pCallback The callback function.
-        ///
-        /// This callback function has a single integer parameter that
-        /// contains a count of the rows that have been completed.  It returns
-        /// void.  Pass a function with this signature to the SetCallback()
-        /// method.
-        void SetCallback (NoiseMapCallback pCallback);
+      /// Sets the destination noise map.
+      ///
+      /// @param destNoiseMap The destination noise map.
+      ///
+      /// The destination noise map will contain the coherent-noise values
+      /// from this noise map after a successful call to the Build() method.
+      ///
+      /// The destination noise map must exist throughout the lifetime of
+      /// this object unless another noise map replaces that noise map.
+      void SetDestNoiseMap(NoiseMap &destNoiseMap)
+      {
+        m_pDestNoiseMap = &destNoiseMap;
+      }
 
-        /// Sets the destination noise map.
-        ///
-        /// @param destNoiseMap The destination noise map.
-        ///
-        /// The destination noise map will contain the coherent-noise values
-        /// from this noise map after a successful call to the Build() method.
-        ///
-        /// The destination noise map must exist throughout the lifetime of
-        /// this object unless another noise map replaces that noise map.
-        void SetDestNoiseMap (NoiseMap& destNoiseMap)
-        {
-          m_pDestNoiseMap = &destNoiseMap;
-        }
+      /// Sets the source module.
+      ///
+      /// @param sourceModule The source module.
+      ///
+      /// This object fills in a noise map with the coherent-noise values
+      /// from this source module.
+      ///
+      /// The source module must exist throughout the lifetime of this
+      /// object unless another noise module replaces that noise module.
+      void SetSourceModule(const module::Module &sourceModule)
+      {
+        m_pSourceModule = &sourceModule;
+      }
 
-        /// Sets the source module.
-        ///
-        /// @param sourceModule The source module.
-        ///
-        /// This object fills in a noise map with the coherent-noise values
-        /// from this source module.
-        ///
-        /// The source module must exist throughout the lifetime of this
-        /// object unless another noise module replaces that noise module.
-        void SetSourceModule (const module::Module& sourceModule)
-        {
-          m_pSourceModule = &sourceModule;
-        }
+      /// Sets the size of the destination noise map.
+      ///
+      /// @param destWidth The width of the destination noise map, in
+      /// points.
+      /// @param destHeight The height of the destination noise map, in
+      /// points.
+      ///
+      /// This method does not change the size of the destination noise map
+      /// until the Build() method is called.
+      void SetDestSize(int destWidth, int destHeight)
+      {
+        m_destWidth = destWidth;
+        m_destHeight = destHeight;
+      }
 
-        /// Sets the size of the destination noise map.
-        ///
-        /// @param destWidth The width of the destination noise map, in
-        /// points.
-        /// @param destHeight The height of the destination noise map, in
-        /// points.
-        ///
-        /// This method does not change the size of the destination noise map
-        /// until the Build() method is called.
-        void SetDestSize (int destWidth, int destHeight)
-        {
-          m_destWidth  = destWidth ;
-          m_destHeight = destHeight;
-        }
+    protected:
+      /// The callback function that Build() calls each time it fills a row
+      /// of the noise map with coherent-noise values.
+      ///
+      /// This callback function has a single integer parameter that
+      /// contains a count of the rows that have been completed.  It returns
+      /// void.  Pass a function with this signature to the SetCallback()
+      /// method.
+      NoiseMapCallback m_pCallback;
 
-      protected:
+      /// Height of the destination noise map, in points.
+      int m_destHeight;
 
-        /// The callback function that Build() calls each time it fills a row
-        /// of the noise map with coherent-noise values.
-        ///
-        /// This callback function has a single integer parameter that
-        /// contains a count of the rows that have been completed.  It returns
-        /// void.  Pass a function with this signature to the SetCallback()
-        /// method.
-        NoiseMapCallback m_pCallback;
+      /// Width of the destination noise map, in points.
+      int m_destWidth;
 
-        /// Height of the destination noise map, in points.
-        int m_destHeight;
+      /// Destination noise map that will contain the coherent-noise values.
+      NoiseMap *m_pDestNoiseMap;
 
-        /// Width of the destination noise map, in points.
-        int m_destWidth;
-
-        /// Destination noise map that will contain the coherent-noise values.
-        NoiseMap* m_pDestNoiseMap;
-
-        /// Source noise module that will generate the coherent-noise values.
-        const module::Module* m_pSourceModule;
-
+      /// Source noise module that will generate the coherent-noise values.
+      const module::Module *m_pSourceModule;
     };
 
     /// Builds a cylindrical noise map.
@@ -1493,99 +1466,96 @@ namespace noise
     /// The application must provide the lower and upper angle bounds of the
     /// noise map, in degrees, and the lower and upper height bounds of the
     /// noise map, in units.
-    class NoiseMapBuilderCylinder: public NoiseMapBuilder
+    class NoiseMapBuilderCylinder : public NoiseMapBuilder
     {
 
-      public:
+    public:
+      /// Constructor.
+      NoiseMapBuilderCylinder();
 
-        /// Constructor.
-        NoiseMapBuilderCylinder ();
+      virtual void Build();
 
-        virtual void Build ();
+      /// Returns the lower angle boundary of the cylindrical noise map.
+      ///
+      /// @returns The lower angle boundary of the noise map, in degrees.
+      double GetLowerAngleBound() const
+      {
+        return m_lowerAngleBound;
+      }
 
-        /// Returns the lower angle boundary of the cylindrical noise map.
-        ///
-        /// @returns The lower angle boundary of the noise map, in degrees.
-        double GetLowerAngleBound () const
+      /// Returns the lower height boundary of the cylindrical noise map.
+      ///
+      /// @returns The lower height boundary of the noise map, in units.
+      ///
+      /// One unit is equal to the radius of the cylinder.
+      double GetLowerHeightBound() const
+      {
+        return m_lowerHeightBound;
+      }
+
+      /// Returns the upper angle boundary of the cylindrical noise map.
+      ///
+      /// @returns The upper angle boundary of the noise map, in degrees.
+      double GetUpperAngleBound() const
+      {
+        return m_upperAngleBound;
+      }
+
+      /// Returns the upper height boundary of the cylindrical noise map.
+      ///
+      /// @returns The upper height boundary of the noise map, in units.
+      ///
+      /// One unit is equal to the radius of the cylinder.
+      double GetUpperHeightBound() const
+      {
+        return m_upperHeightBound;
+      }
+
+      /// Sets the coordinate boundaries of the noise map.
+      ///
+      /// @param lowerAngleBound The lower angle boundary of the noise map,
+      /// in degrees.
+      /// @param upperAngleBound The upper angle boundary of the noise map,
+      /// in degrees.
+      /// @param lowerHeightBound The lower height boundary of the noise
+      /// map, in units.
+      /// @param upperHeightBound The upper height boundary of the noise
+      /// map, in units.
+      ///
+      /// @pre The lower angle boundary is less than the upper angle
+      /// boundary.
+      /// @pre The lower height boundary is less than the upper height
+      /// boundary.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      ///
+      /// One unit is equal to the radius of the cylinder.
+      void SetBounds(double lowerAngleBound, double upperAngleBound,
+                     double lowerHeightBound, double upperHeightBound)
+      {
+        if (lowerAngleBound >= upperAngleBound || lowerHeightBound >= upperHeightBound)
         {
-          return m_lowerAngleBound;
+          throw noise::ExceptionInvalidParam();
         }
 
-        /// Returns the lower height boundary of the cylindrical noise map.
-        ///
-        /// @returns The lower height boundary of the noise map, in units.
-        ///
-        /// One unit is equal to the radius of the cylinder.
-        double GetLowerHeightBound () const
-        {
-          return m_lowerHeightBound;
-        }
+        m_lowerAngleBound = lowerAngleBound;
+        m_upperAngleBound = upperAngleBound;
+        m_lowerHeightBound = lowerHeightBound;
+        m_upperHeightBound = upperHeightBound;
+      }
 
-        /// Returns the upper angle boundary of the cylindrical noise map.
-        ///
-        /// @returns The upper angle boundary of the noise map, in degrees.
-        double GetUpperAngleBound () const
-        {
-          return m_upperAngleBound;
-        }
+    private:
+      /// Lower angle boundary of the cylindrical noise map, in degrees.
+      double m_lowerAngleBound;
 
-        /// Returns the upper height boundary of the cylindrical noise map.
-        ///
-        /// @returns The upper height boundary of the noise map, in units.
-        ///
-        /// One unit is equal to the radius of the cylinder.
-        double GetUpperHeightBound () const
-        {
-          return m_upperHeightBound;
-        }
+      /// Lower height boundary of the cylindrical noise map, in units.
+      double m_lowerHeightBound;
 
-        /// Sets the coordinate boundaries of the noise map.
-        ///
-        /// @param lowerAngleBound The lower angle boundary of the noise map,
-        /// in degrees.
-        /// @param upperAngleBound The upper angle boundary of the noise map,
-        /// in degrees.
-        /// @param lowerHeightBound The lower height boundary of the noise
-        /// map, in units.
-        /// @param upperHeightBound The upper height boundary of the noise
-        /// map, in units.
-        ///
-        /// @pre The lower angle boundary is less than the upper angle
-        /// boundary.
-        /// @pre The lower height boundary is less than the upper height
-        /// boundary.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        ///
-        /// One unit is equal to the radius of the cylinder.
-        void SetBounds (double lowerAngleBound, double upperAngleBound,
-          double lowerHeightBound, double upperHeightBound)
-        {
-          if (lowerAngleBound >= upperAngleBound
-            || lowerHeightBound >= upperHeightBound) {
-            throw noise::ExceptionInvalidParam ();
-          }
+      /// Upper angle boundary of the cylindrical noise map, in degrees.
+      double m_upperAngleBound;
 
-          m_lowerAngleBound  = lowerAngleBound ;
-          m_upperAngleBound  = upperAngleBound ;
-          m_lowerHeightBound = lowerHeightBound;
-          m_upperHeightBound = upperHeightBound;
-        }
-
-      private:
-
-        /// Lower angle boundary of the cylindrical noise map, in degrees.
-        double m_lowerAngleBound;
-
-        /// Lower height boundary of the cylindrical noise map, in units.
-        double m_lowerHeightBound;
-
-        /// Upper angle boundary of the cylindrical noise map, in degrees.
-        double m_upperAngleBound;
-
-        /// Upper height boundary of the cylindrical noise map, in units.
-        double m_upperHeightBound;
-
+      /// Upper height boundary of the cylindrical noise map, in units.
+      double m_upperHeightBound;
     };
 
     /// Builds a planar noise map.
@@ -1602,120 +1572,116 @@ namespace noise
     ///
     /// To make a tileable noise map with no seams at the edges, call the
     /// EnableSeamless() method.
-    class NoiseMapBuilderPlane: public NoiseMapBuilder
+    class NoiseMapBuilderPlane : public NoiseMapBuilder
     {
 
-      public:
+    public:
+      /// Constructor.
+      NoiseMapBuilderPlane();
 
-        /// Constructor.
-        NoiseMapBuilderPlane ();
+      virtual void Build();
 
-        virtual void Build ();
+      /// Enables or disables seamless tiling.
+      ///
+      /// @param enable A flag that enables or disables seamless tiling.
+      ///
+      /// Enabling seamless tiling builds a noise map with no seams at the
+      /// edges.  This allows the noise map to be tileable.
+      void EnableSeamless(bool enable = true)
+      {
+        m_isSeamlessEnabled = enable;
+      }
 
-        /// Enables or disables seamless tiling.
-        ///
-        /// @param enable A flag that enables or disables seamless tiling.
-        ///
-        /// Enabling seamless tiling builds a noise map with no seams at the
-        /// edges.  This allows the noise map to be tileable.
-        void EnableSeamless (bool enable = true)
+      /// Returns the lower x boundary of the planar noise map.
+      ///
+      /// @returns The lower x boundary of the planar noise map, in units.
+      double GetLowerXBound() const
+      {
+        return m_lowerXBound;
+      }
+
+      /// Returns the lower z boundary of the planar noise map.
+      ///
+      /// @returns The lower z boundary of the noise map, in units.
+      double GetLowerZBound() const
+      {
+        return m_lowerZBound;
+      }
+
+      /// Returns the upper x boundary of the planar noise map.
+      ///
+      /// @returns The upper x boundary of the noise map, in units.
+      double GetUpperXBound() const
+      {
+        return m_upperXBound;
+      }
+
+      /// Returns the upper z boundary of the planar noise map.
+      ///
+      /// @returns The upper z boundary of the noise map, in units.
+      double GetUpperZBound() const
+      {
+        return m_upperZBound;
+      }
+
+      /// Determines if seamless tiling is enabled.
+      ///
+      /// @returns
+      /// - @a true if seamless tiling is enabled.
+      /// - @a false if seamless tiling is disabled.
+      ///
+      /// Enabling seamless tiling builds a noise map with no seams at the
+      /// edges.  This allows the noise map to be tileable.
+      bool IsSeamlessEnabled() const
+      {
+        return m_isSeamlessEnabled;
+      }
+
+      /// Sets the boundaries of the planar noise map.
+      ///
+      /// @param lowerXBound The lower x boundary of the noise map, in
+      /// units.
+      /// @param upperXBound The upper x boundary of the noise map, in
+      /// units.
+      /// @param lowerZBound The lower z boundary of the noise map, in
+      /// units.
+      /// @param upperZBound The upper z boundary of the noise map, in
+      /// units.
+      ///
+      /// @pre The lower x boundary is less than the upper x boundary.
+      /// @pre The lower z boundary is less than the upper z boundary.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      void SetBounds(double lowerXBound, double upperXBound,
+                     double lowerZBound, double upperZBound)
+      {
+        if (lowerXBound >= upperXBound || lowerZBound >= upperZBound)
         {
-          m_isSeamlessEnabled = enable;
+          throw noise::ExceptionInvalidParam();
         }
 
-        /// Returns the lower x boundary of the planar noise map.
-        ///
-        /// @returns The lower x boundary of the planar noise map, in units.
-        double GetLowerXBound () const
-        {
-          return m_lowerXBound;
-        }
+        m_lowerXBound = lowerXBound;
+        m_upperXBound = upperXBound;
+        m_lowerZBound = lowerZBound;
+        m_upperZBound = upperZBound;
+      }
 
-        /// Returns the lower z boundary of the planar noise map.
-        ///
-        /// @returns The lower z boundary of the noise map, in units.
-        double GetLowerZBound () const
-        {
-          return m_lowerZBound;
-        }
+    private:
+      /// A flag specifying whether seamless tiling is enabled.
+      bool m_isSeamlessEnabled;
 
-        /// Returns the upper x boundary of the planar noise map.
-        ///
-        /// @returns The upper x boundary of the noise map, in units.
-        double GetUpperXBound () const
-        {
-          return m_upperXBound;
-        }
+      /// Lower x boundary of the planar noise map, in units.
+      double m_lowerXBound;
 
-        /// Returns the upper z boundary of the planar noise map.
-        ///
-        /// @returns The upper z boundary of the noise map, in units.
-        double GetUpperZBound () const
-        {
-          return m_upperZBound;
-        }
+      /// Lower z boundary of the planar noise map, in units.
+      double m_lowerZBound;
 
-        /// Determines if seamless tiling is enabled.
-        ///
-        /// @returns
-        /// - @a true if seamless tiling is enabled.
-        /// - @a false if seamless tiling is disabled.
-        ///
-        /// Enabling seamless tiling builds a noise map with no seams at the
-        /// edges.  This allows the noise map to be tileable.
-        bool IsSeamlessEnabled () const
-        {
-          return m_isSeamlessEnabled;
-        }
+      /// Upper x boundary of the planar noise map, in units.
+      double m_upperXBound;
 
-        /// Sets the boundaries of the planar noise map.
-        ///
-        /// @param lowerXBound The lower x boundary of the noise map, in
-        /// units.
-        /// @param upperXBound The upper x boundary of the noise map, in
-        /// units.
-        /// @param lowerZBound The lower z boundary of the noise map, in
-        /// units.
-        /// @param upperZBound The upper z boundary of the noise map, in
-        /// units.
-        ///
-        /// @pre The lower x boundary is less than the upper x boundary.
-        /// @pre The lower z boundary is less than the upper z boundary.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        void SetBounds (double lowerXBound, double upperXBound,
-          double lowerZBound, double upperZBound)
-        {
-          if (lowerXBound >= upperXBound
-            || lowerZBound >= upperZBound) {
-            throw noise::ExceptionInvalidParam ();
-          }
-
-          m_lowerXBound = lowerXBound;
-          m_upperXBound = upperXBound;
-          m_lowerZBound = lowerZBound;
-          m_upperZBound = upperZBound;
-        }
-
-      private:
-
-        /// A flag specifying whether seamless tiling is enabled.
-        bool m_isSeamlessEnabled;
-
-        /// Lower x boundary of the planar noise map, in units.
-        double m_lowerXBound;
-
-        /// Lower z boundary of the planar noise map, in units.
-        double m_lowerZBound;
-
-        /// Upper x boundary of the planar noise map, in units.
-        double m_upperXBound;
-
-        /// Upper z boundary of the planar noise map, in units.
-        double m_upperZBound;
-
+      /// Upper z boundary of the planar noise map, in units.
+      double m_upperZBound;
     };
-
 
     /// Builds a spherical noise map.
     ///
@@ -1731,95 +1697,92 @@ namespace noise
     /// origin.
     ///
     /// The x coordinate in the noise map represents the longitude.  The y
-    /// coordinate in the noise map represents the latitude.  
+    /// coordinate in the noise map represents the latitude.
     ///
     /// The application must provide the southern, northern, western, and
     /// eastern bounds of the noise map, in degrees.
-    class NoiseMapBuilderSphere: public NoiseMapBuilder
+    class NoiseMapBuilderSphere : public NoiseMapBuilder
     {
 
-      public:
+    public:
+      /// Constructor.
+      NoiseMapBuilderSphere();
 
-        /// Constructor.
-        NoiseMapBuilderSphere ();
+      virtual void Build();
 
-        virtual void Build ();
+      /// Returns the eastern boundary of the spherical noise map.
+      ///
+      /// @returns The eastern boundary of the noise map, in degrees.
+      double GetEastLonBound() const
+      {
+        return m_eastLonBound;
+      }
 
-        /// Returns the eastern boundary of the spherical noise map.
-        ///
-        /// @returns The eastern boundary of the noise map, in degrees.
-        double GetEastLonBound () const
+      /// Returns the northern boundary of the spherical noise map
+      ///
+      /// @returns The northern boundary of the noise map, in degrees.
+      double GetNorthLatBound() const
+      {
+        return m_northLatBound;
+      }
+
+      /// Returns the southern boundary of the spherical noise map
+      ///
+      /// @returns The southern boundary of the noise map, in degrees.
+      double GetSouthLatBound() const
+      {
+        return m_southLatBound;
+      }
+
+      /// Returns the western boundary of the spherical noise map
+      ///
+      /// @returns The western boundary of the noise map, in degrees.
+      double GetWestLonBound() const
+      {
+        return m_westLonBound;
+      }
+
+      /// Sets the coordinate boundaries of the noise map.
+      ///
+      /// @param southLatBound The southern boundary of the noise map, in
+      /// degrees.
+      /// @param northLatBound The northern boundary of the noise map, in
+      /// degrees.
+      /// @param westLonBound The western boundary of the noise map, in
+      /// degrees.
+      /// @param eastLonBound The eastern boundary of the noise map, in
+      /// degrees.
+      ///
+      /// @pre The southern boundary is less than the northern boundary.
+      /// @pre The western boundary is less than the eastern boundary.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      void SetBounds(double southLatBound, double northLatBound,
+                     double westLonBound, double eastLonBound)
+      {
+        if (southLatBound >= northLatBound || westLonBound >= eastLonBound)
         {
-          return m_eastLonBound;
+          throw noise::ExceptionInvalidParam();
         }
 
-        /// Returns the northern boundary of the spherical noise map
-        ///
-        /// @returns The northern boundary of the noise map, in degrees.
-        double GetNorthLatBound () const
-        {
-          return m_northLatBound;
-        }
+        m_southLatBound = southLatBound;
+        m_northLatBound = northLatBound;
+        m_westLonBound = westLonBound;
+        m_eastLonBound = eastLonBound;
+      }
 
-        /// Returns the southern boundary of the spherical noise map
-        ///
-        /// @returns The southern boundary of the noise map, in degrees.
-        double GetSouthLatBound () const
-        {
-          return m_southLatBound;
-        }
+    private:
+      /// Eastern boundary of the spherical noise map, in degrees.
+      double m_eastLonBound;
 
-        /// Returns the western boundary of the spherical noise map
-        ///
-        /// @returns The western boundary of the noise map, in degrees.
-        double GetWestLonBound () const
-        {
-          return m_westLonBound;
-        }
+      /// Northern boundary of the spherical noise map, in degrees.
+      double m_northLatBound;
 
-        /// Sets the coordinate boundaries of the noise map.
-        ///
-        /// @param southLatBound The southern boundary of the noise map, in
-        /// degrees.
-        /// @param northLatBound The northern boundary of the noise map, in
-        /// degrees.
-        /// @param westLonBound The western boundary of the noise map, in
-        /// degrees.
-        /// @param eastLonBound The eastern boundary of the noise map, in
-        /// degrees.
-        ///
-        /// @pre The southern boundary is less than the northern boundary.
-        /// @pre The western boundary is less than the eastern boundary.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        void SetBounds (double southLatBound, double northLatBound,
-          double westLonBound, double eastLonBound)
-        {
-          if (southLatBound >= northLatBound
-            || westLonBound >= eastLonBound) {
-            throw noise::ExceptionInvalidParam ();
-          }
+      /// Southern boundary of the spherical noise map, in degrees.
+      double m_southLatBound;
 
-          m_southLatBound = southLatBound;
-          m_northLatBound = northLatBound;
-          m_westLonBound  = westLonBound ;
-          m_eastLonBound  = eastLonBound ;
-        }
-
-      private:
-
-        /// Eastern boundary of the spherical noise map, in degrees.
-        double m_eastLonBound;
-
-        /// Northern boundary of the spherical noise map, in degrees.
-        double m_northLatBound;
-
-        /// Southern boundary of the spherical noise map, in degrees.
-        double m_southLatBound;
-
-        /// Western boundary of the spherical noise map, in degrees.
-        double m_westLonBound;
-
+      /// Western boundary of the spherical noise map, in degrees.
+      double m_westLonBound;
     };
 
     /// Renders an image from a noise map.
@@ -1887,14 +1850,14 @@ namespace noise
     /// To set the intensity of the light source, call the SetLightIntensity()
     /// method.  A good intensity value is 2.0, although that value tends to
     /// "wash out" very light colors from the image.
-    /// 
+    ///
     /// To set the contrast amount between areas in light and areas in shadow,
     /// call the SetLightContrast() method.  Determining the correct contrast
     /// amount requires some trial and error, but if your application
     /// interprets the noise map as a height map that has its elevation values
     /// measured in meters and has a horizontal resolution of @a h meters, a
     /// good contrast amount to use is ( 1.0 / @a h ).
-    /// 
+    ///
     /// <b>Specify the background image</b>
     ///
     /// To specify a background image, pass an Image object to the
@@ -1920,442 +1883,441 @@ namespace noise
     class RendererImage
     {
 
-      public:
+    public:
+      /// Constructor.
+      RendererImage();
 
-        /// Constructor.
-        RendererImage ();
+      /// Adds a gradient point to this gradient object.
+      ///
+      /// @param gradientPos The position of this gradient point.
+      /// @param gradientColor The color of this gradient point.
+      ///
+      /// @pre No two gradient points have the same position.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      ///
+      /// This object uses a color gradient to calculate the color for each
+      /// pixel in the destination image according to the value from the
+      /// corresponding position in the noise map.
+      ///
+      /// The gradient requires a minimum of two gradient points.
+      ///
+      /// The specified color value passed to this method has an alpha
+      /// channel.  This alpha channel specifies how a pixel in the
+      /// background image (if specified) is blended with the calculated
+      /// color.  If the alpha value is high, this object weighs the blend
+      /// towards the calculated color, and if the alpha value is low, this
+      /// object weighs the blend towards the color from the corresponding
+      /// pixel in the background image.
+      void AddGradientPoint(double gradientPos,
+                            const Color &gradientColor);
 
-        /// Adds a gradient point to this gradient object.
-        ///
-        /// @param gradientPos The position of this gradient point.
-        /// @param gradientColor The color of this gradient point.
-        ///
-        /// @pre No two gradient points have the same position.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        ///
-        /// This object uses a color gradient to calculate the color for each
-        /// pixel in the destination image according to the value from the
-        /// corresponding position in the noise map.
-        ///
-        /// The gradient requires a minimum of two gradient points.
-        ///
-        /// The specified color value passed to this method has an alpha
-        /// channel.  This alpha channel specifies how a pixel in the
-        /// background image (if specified) is blended with the calculated
-        /// color.  If the alpha value is high, this object weighs the blend
-        /// towards the calculated color, and if the alpha value is low, this
-        /// object weighs the blend towards the color from the corresponding
-        /// pixel in the background image.
-        void AddGradientPoint (double gradientPos,
-          const Color& gradientColor);
+      /// Builds a grayscale gradient.
+      ///
+      /// @post The original gradient is cleared and a grayscale gradient is
+      /// created.
+      ///
+      /// This color gradient contains the following gradient points:
+      /// - -1.0 maps to black
+      /// - 1.0 maps to white
+      void BuildGrayscaleGradient();
 
-        /// Builds a grayscale gradient.
-        ///
-        /// @post The original gradient is cleared and a grayscale gradient is
-        /// created.
-        ///
-        /// This color gradient contains the following gradient points:
-        /// - -1.0 maps to black
-        /// - 1.0 maps to white
-        void BuildGrayscaleGradient ();
+      /// Builds a color gradient suitable for terrain.
+      ///
+      /// @post The original gradient is cleared and a terrain gradient is
+      /// created.
+      ///
+      /// This gradient color at position 0.0 is the "sea level".  Above
+      /// that value, the gradient contains greens, browns, and whites.
+      /// Below that value, the gradient contains various shades of blue.
+      void BuildTerrainGradient();
 
-        /// Builds a color gradient suitable for terrain.
-        ///
-        /// @post The original gradient is cleared and a terrain gradient is
-        /// created.
-        ///
-        /// This gradient color at position 0.0 is the "sea level".  Above
-        /// that value, the gradient contains greens, browns, and whites.
-        /// Below that value, the gradient contains various shades of blue.
-        void BuildTerrainGradient ();
+      /// Clears the color gradient.
+      ///
+      /// Before calling the Render() method, the application must specify a
+      /// new color gradient with at least two gradient points.
+      void ClearGradient();
 
-        /// Clears the color gradient.
-        ///
-        /// Before calling the Render() method, the application must specify a
-        /// new color gradient with at least two gradient points.
-        void ClearGradient ();
+      /// Enables or disables the light source.
+      ///
+      /// @param enable A flag that enables or disables the light source.
+      ///
+      /// If the light source is enabled, this object will interpret the
+      /// noise map as a bump map.
+      void EnableLight(bool enable = true)
+      {
+        m_isLightEnabled = enable;
+      }
 
-        /// Enables or disables the light source.
-        ///
-        /// @param enable A flag that enables or disables the light source.
-        ///
-        /// If the light source is enabled, this object will interpret the
-        /// noise map as a bump map.
-        void EnableLight (bool enable = true)
+      /// Enables or disables noise-map wrapping.
+      ///
+      /// @param enable A flag that enables or disables noise-map wrapping.
+      ///
+      /// This object requires five points (the initial point and its four
+      /// neighbors) to calculate light shading.  If wrapping is enabled,
+      /// and the initial point is on the edge of the noise map, the
+      /// appropriate neighbors that lie outside of the noise map will
+      /// "wrap" to the opposite side(s) of the noise map.  Otherwise, the
+      /// appropriate neighbors are cropped to the edge of the noise map.
+      ///
+      /// Enabling wrapping is useful when creating spherical renderings and
+      /// tileable textures.
+      void EnableWrap(bool enable = true)
+      {
+        m_isWrapEnabled = enable;
+      }
+
+      /// Returns the azimuth of the light source, in degrees.
+      ///
+      /// @returns The azimuth of the light source.
+      ///
+      /// The azimuth is the location of the light source around the
+      /// horizon:
+      /// - 0.0 degrees is east.
+      /// - 90.0 degrees is north.
+      /// - 180.0 degrees is west.
+      /// - 270.0 degrees is south.
+      double GetLightAzimuth() const
+      {
+        return m_lightAzimuth;
+      }
+
+      /// Returns the brightness of the light source.
+      ///
+      /// @returns The brightness of the light source.
+      double GetLightBrightness() const
+      {
+        return m_lightBrightness;
+      }
+
+      /// Returns the color of the light source.
+      ///
+      /// @returns The color of the light source.
+      Color GetLightColor() const
+      {
+        return m_lightColor;
+      }
+
+      /// Returns the contrast of the light source.
+      ///
+      /// @returns The contrast of the light source.
+      ///
+      /// The contrast specifies how sharp the boundary is between the
+      /// light-facing areas and the shadowed areas.
+      ///
+      /// The contrast determines the difference between areas in light and
+      /// areas in shadow.  Determining the correct contrast amount requires
+      /// some trial and error, but if your application interprets the noise
+      /// map as a height map that has a spatial resolution of @a h meters
+      /// and an elevation resolution of 1 meter, a good contrast amount to
+      /// use is ( 1.0 / @a h ).
+      double GetLightContrast() const
+      {
+        return m_lightContrast;
+      }
+
+      /// Returns the elevation of the light source, in degrees.
+      ///
+      /// @returns The elevation of the light source.
+      ///
+      /// The elevation is the angle above the horizon:
+      /// - 0 degrees is on the horizon.
+      /// - 90 degrees is straight up.
+      double GetLightElev() const
+      {
+        return m_lightElev;
+      }
+
+      /// Returns the intensity of the light source.
+      ///
+      /// @returns The intensity of the light source.
+      double GetLightIntensity() const
+      {
+        return m_lightIntensity;
+      }
+
+      /// Determines if the light source is enabled.
+      ///
+      /// @returns
+      /// - @a true if the light source is enabled.
+      /// - @a false if the light source is disabled.
+      bool IsLightEnabled() const
+      {
+        return m_isLightEnabled;
+      }
+
+      /// Determines if noise-map wrapping is enabled.
+      ///
+      /// @returns
+      /// - @a true if noise-map wrapping is enabled.
+      /// - @a false if noise-map wrapping is disabled.
+      ///
+      /// This object requires five points (the initial point and its four
+      /// neighbors) to calculate light shading.  If wrapping is enabled,
+      /// and the initial point is on the edge of the noise map, the
+      /// appropriate neighbors that lie outside of the noise map will
+      /// "wrap" to the opposite side(s) of the noise map.  Otherwise, the
+      /// appropriate neighbors are cropped to the edge of the noise map.
+      ///
+      /// Enabling wrapping is useful when creating spherical renderings and
+      /// tileable textures
+      bool IsWrapEnabled() const
+      {
+        return m_isWrapEnabled;
+      }
+
+      /// Renders the destination image using the contents of the source
+      /// noise map and an optional background image.
+      ///
+      /// @pre SetSourceNoiseMap() has been previously called.
+      /// @pre SetDestImage() has been previously called.
+      /// @pre There are at least two gradient points in the color gradient.
+      /// @pre No two gradient points have the same position.
+      /// @pre If a background image was specified, it has the exact same
+      /// size as the source height map.
+      ///
+      /// @post The original contents of the destination image is destroyed.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      ///
+      /// The background image and the destination image can safely refer to
+      /// the same image, although in this case, the destination image is
+      /// irretrievably blended into the background image.
+      void Render();
+
+      /// Sets the background image.
+      ///
+      /// @param backgroundImage The background image.
+      ///
+      /// If a background image has been specified, the Render() method
+      /// blends the pixels from the background image onto the corresponding
+      /// pixels in the destination image.  The blending weights are
+      /// determined by the alpha channel in the pixels in the destination
+      /// image.
+      ///
+      /// The destination image must exist throughout the lifetime of this
+      /// object unless another image replaces that image.
+      void SetBackgroundImage(const Image &backgroundImage)
+      {
+        m_pBackgroundImage = &backgroundImage;
+      }
+
+      /// Sets the destination image.
+      ///
+      /// @param destImage The destination image.
+      ///
+      /// The destination image will contain the rendered image after a
+      /// successful call to the Render() method.
+      ///
+      /// The destination image must exist throughout the lifetime of this
+      /// object unless another image replaces that image.
+      void SetDestImage(Image &destImage)
+      {
+        m_pDestImage = &destImage;
+      }
+
+      /// Sets the azimuth of the light source, in degrees.
+      ///
+      /// @param lightAzimuth The azimuth of the light source.
+      ///
+      /// The azimuth is the location of the light source around the
+      /// horizon:
+      /// - 0.0 degrees is east.
+      /// - 90.0 degrees is north.
+      /// - 180.0 degrees is west.
+      /// - 270.0 degrees is south.
+      ///
+      /// Make sure the light source is enabled via a call to the
+      /// EnableLight() method before calling the Render() method.
+      void SetLightAzimuth(double lightAzimuth)
+      {
+        m_lightAzimuth = lightAzimuth;
+        m_recalcLightValues = true;
+      }
+
+      /// Sets the brightness of the light source.
+      ///
+      /// @param lightBrightness The brightness of the light source.
+      ///
+      /// Make sure the light source is enabled via a call to the
+      /// EnableLight() method before calling the Render() method.
+      void SetLightBrightness(double lightBrightness)
+      {
+        m_lightBrightness = lightBrightness;
+        m_recalcLightValues = true;
+      }
+
+      /// Sets the color of the light source.
+      ///
+      /// @param lightColor The light color.
+      ///
+      /// Make sure the light source is enabled via a call to the
+      /// EnableLight() method before calling the Render() method.
+      void SetLightColor(const Color &lightColor)
+      {
+        m_lightColor = lightColor;
+      }
+
+      /// Sets the contrast of the light source.
+      ///
+      /// @param lightContrast The contrast of the light source.
+      ///
+      /// @pre The specified light contrast is positive.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      ///
+      /// The contrast specifies how sharp the boundary is between the
+      /// light-facing areas and the shadowed areas.
+      ///
+      /// The contrast determines the difference between areas in light and
+      /// areas in shadow.  Determining the correct contrast amount requires
+      /// some trial and error, but if your application interprets the noise
+      /// map as a height map that has a spatial resolution of @a h meters
+      /// and an elevation resolution of 1 meter, a good contrast amount to
+      /// use is ( 1.0 / @a h ).
+      ///
+      /// Make sure the light source is enabled via a call to the
+      /// EnableLight() method before calling the Render() method.
+      void SetLightContrast(double lightContrast)
+      {
+        if (lightContrast <= 0.0)
         {
-          m_isLightEnabled = enable;
+          throw noise::ExceptionInvalidParam();
         }
 
-        /// Enables or disables noise-map wrapping.
-        ///
-        /// @param enable A flag that enables or disables noise-map wrapping.
-        ///
-        /// This object requires five points (the initial point and its four
-        /// neighbors) to calculate light shading.  If wrapping is enabled,
-        /// and the initial point is on the edge of the noise map, the
-        /// appropriate neighbors that lie outside of the noise map will
-        /// "wrap" to the opposite side(s) of the noise map.  Otherwise, the
-        /// appropriate neighbors are cropped to the edge of the noise map.
-        ///
-        /// Enabling wrapping is useful when creating spherical renderings and
-        /// tileable textures.
-        void EnableWrap (bool enable = true)
+        m_lightContrast = lightContrast;
+        m_recalcLightValues = true;
+      }
+
+      /// Sets the elevation of the light source, in degrees.
+      ///
+      /// @param lightElev The elevation of the light source.
+      ///
+      /// The elevation is the angle above the horizon:
+      /// - 0 degrees is on the horizon.
+      /// - 90 degrees is straight up.
+      ///
+      /// Make sure the light source is enabled via a call to the
+      /// EnableLight() method before calling the Render() method.
+      void SetLightElev(double lightElev)
+      {
+        m_lightElev = lightElev;
+        m_recalcLightValues = true;
+      }
+
+      /// Returns the intensity of the light source.
+      ///
+      /// @returns The intensity of the light source.
+      ///
+      /// A good value for intensity is 2.0.
+      ///
+      /// Make sure the light source is enabled via a call to the
+      /// EnableLight() method before calling the Render() method.
+      void SetLightIntensity(double lightIntensity)
+      {
+        if (lightIntensity < 0.0)
         {
-          m_isWrapEnabled = enable;
+          throw noise::ExceptionInvalidParam();
         }
 
-        /// Returns the azimuth of the light source, in degrees.
-        ///
-        /// @returns The azimuth of the light source.
-        ///
-        /// The azimuth is the location of the light source around the
-        /// horizon:
-        /// - 0.0 degrees is east.
-        /// - 90.0 degrees is north.
-        /// - 180.0 degrees is west.
-        /// - 270.0 degrees is south.
-        double GetLightAzimuth () const
-        {
-          return m_lightAzimuth;
-        }
+        m_lightIntensity = lightIntensity;
+        m_recalcLightValues = true;
+      }
 
-        /// Returns the brightness of the light source.
-        ///
-        /// @returns The brightness of the light source.
-        double GetLightBrightness () const
-        {
-          return m_lightBrightness;
-        }
+      /// Sets the source noise map.
+      ///
+      /// @param sourceNoiseMap The source noise map.
+      ///
+      /// The destination image must exist throughout the lifetime of this
+      /// object unless another image replaces that image.
+      void SetSourceNoiseMap(const NoiseMap &sourceNoiseMap)
+      {
+        m_pSourceNoiseMap = &sourceNoiseMap;
+      }
 
-        /// Returns the color of the light source.
-        ///
-        /// @returns The color of the light source.
-        Color GetLightColor () const
-        {
-          return m_lightColor;
-        }
+    private:
+      /// Calculates the destination color.
+      ///
+      /// @param sourceColor The source color generated from the color
+      /// gradient.
+      /// @param backgroundColor The color from the background image at the
+      /// corresponding position.
+      /// @param lightValue The intensity of the light at that position.
+      ///
+      /// @returns The destination color.
+      Color CalcDestColor(const Color &sourceColor,
+                          const Color &backgroundColor, double lightValue) const;
 
-        /// Returns the contrast of the light source.
-        ///
-        /// @returns The contrast of the light source.
-        ///
-        /// The contrast specifies how sharp the boundary is between the
-        /// light-facing areas and the shadowed areas.
-        ///
-        /// The contrast determines the difference between areas in light and
-        /// areas in shadow.  Determining the correct contrast amount requires
-        /// some trial and error, but if your application interprets the noise
-        /// map as a height map that has a spatial resolution of @a h meters
-        /// and an elevation resolution of 1 meter, a good contrast amount to
-        /// use is ( 1.0 / @a h ).
-        double GetLightContrast () const
-        {
-          return m_lightContrast;
-        }
+      /// Calculates the intensity of the light given some elevation values.
+      ///
+      /// @param center Elevation of the center point.
+      /// @param left Elevation of the point directly left of the center
+      /// point.
+      /// @param right Elevation of the point directly right of the center
+      /// point.
+      /// @param down Elevation of the point directly below the center
+      /// point.
+      /// @param up Elevation of the point directly above the center point.
+      ///
+      /// These values come directly from the noise map.
+      double CalcLightIntensity(double center, double left, double right,
+                                double down, double up) const;
 
-        /// Returns the elevation of the light source, in degrees.
-        ///
-        /// @returns The elevation of the light source.
-        ///
-        /// The elevation is the angle above the horizon:
-        /// - 0 degrees is on the horizon.
-        /// - 90 degrees is straight up.
-        double GetLightElev () const
-        {
-          return m_lightElev;
-        }
+      /// The cosine of the azimuth of the light source.
+      mutable double m_cosAzimuth;
 
-        /// Returns the intensity of the light source.
-        ///
-        /// @returns The intensity of the light source.
-        double GetLightIntensity () const
-        {
-          return m_lightIntensity;
-        }
+      /// The cosine of the elevation of the light source.
+      mutable double m_cosElev;
 
-        /// Determines if the light source is enabled.
-        ///
-        /// @returns
-        /// - @a true if the light source is enabled.
-        /// - @a false if the light source is disabled.
-        bool IsLightEnabled () const
-        {
-          return m_isLightEnabled;
-        }
+      /// The color gradient used to specify the image colors.
+      GradientColor m_gradient;
 
-        /// Determines if noise-map wrapping is enabled.
-        ///
-        /// @returns
-        /// - @a true if noise-map wrapping is enabled.
-        /// - @a false if noise-map wrapping is disabled.
-        ///
-        /// This object requires five points (the initial point and its four
-        /// neighbors) to calculate light shading.  If wrapping is enabled,
-        /// and the initial point is on the edge of the noise map, the
-        /// appropriate neighbors that lie outside of the noise map will
-        /// "wrap" to the opposite side(s) of the noise map.  Otherwise, the
-        /// appropriate neighbors are cropped to the edge of the noise map.
-        ///
-        /// Enabling wrapping is useful when creating spherical renderings and
-        /// tileable textures
-        bool IsWrapEnabled () const
-        {
-          return m_isWrapEnabled;
-        }
+      /// A flag specifying whether lighting is enabled.
+      bool m_isLightEnabled;
 
-        /// Renders the destination image using the contents of the source
-        /// noise map and an optional background image.
-        ///
-        /// @pre SetSourceNoiseMap() has been previously called.
-        /// @pre SetDestImage() has been previously called.
-        /// @pre There are at least two gradient points in the color gradient.
-        /// @pre No two gradient points have the same position.
-        /// @pre If a background image was specified, it has the exact same
-        /// size as the source height map.
-        ///
-        /// @post The original contents of the destination image is destroyed.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        ///
-        /// The background image and the destination image can safely refer to
-        /// the same image, although in this case, the destination image is
-        /// irretrievably blended into the background image.
-        void Render ();
+      /// A flag specifying whether wrapping is enabled.
+      bool m_isWrapEnabled;
 
-        /// Sets the background image.
-        ///
-        /// @param backgroundImage The background image.
-        ///
-        /// If a background image has been specified, the Render() method
-        /// blends the pixels from the background image onto the corresponding
-        /// pixels in the destination image.  The blending weights are
-        /// determined by the alpha channel in the pixels in the destination
-        /// image.
-        ///
-        /// The destination image must exist throughout the lifetime of this
-        /// object unless another image replaces that image.
-        void SetBackgroundImage (const Image& backgroundImage)
-        {
-          m_pBackgroundImage = &backgroundImage;
-        }
+      /// The azimuth of the light source, in degrees.
+      double m_lightAzimuth;
 
-        /// Sets the destination image.
-        ///
-        /// @param destImage The destination image.
-        ///
-        /// The destination image will contain the rendered image after a
-        /// successful call to the Render() method.
-        ///
-        /// The destination image must exist throughout the lifetime of this
-        /// object unless another image replaces that image.
-        void SetDestImage (Image& destImage)
-        {
-          m_pDestImage = &destImage;
-        }
+      /// The brightness of the light source.
+      double m_lightBrightness;
 
-        /// Sets the azimuth of the light source, in degrees.
-        ///
-        /// @param lightAzimuth The azimuth of the light source.
-        ///
-        /// The azimuth is the location of the light source around the
-        /// horizon:
-        /// - 0.0 degrees is east.
-        /// - 90.0 degrees is north.
-        /// - 180.0 degrees is west.
-        /// - 270.0 degrees is south.
-        ///
-        /// Make sure the light source is enabled via a call to the
-        /// EnableLight() method before calling the Render() method.
-        void SetLightAzimuth (double lightAzimuth)
-        {
-          m_lightAzimuth = lightAzimuth;
-          m_recalcLightValues = true;
-        }
+      /// The color of the light source.
+      Color m_lightColor;
 
-        /// Sets the brightness of the light source.
-        ///
-        /// @param lightBrightness The brightness of the light source.
-        ///
-        /// Make sure the light source is enabled via a call to the
-        /// EnableLight() method before calling the Render() method.
-        void SetLightBrightness (double lightBrightness)
-        {
-          m_lightBrightness = lightBrightness;
-          m_recalcLightValues = true;
-        }
+      /// The contrast between areas in light and areas in shadow.
+      double m_lightContrast;
 
-        /// Sets the color of the light source.
-        ///
-        /// @param lightColor The light color.
-        ///
-        /// Make sure the light source is enabled via a call to the
-        /// EnableLight() method before calling the Render() method.
-        void SetLightColor (const Color& lightColor)
-        {
-          m_lightColor = lightColor;
-        }
+      /// The elevation of the light source, in degrees.
+      double m_lightElev;
 
-        /// Sets the contrast of the light source.
-        ///
-        /// @param lightContrast The contrast of the light source.
-        ///
-        /// @pre The specified light contrast is positive.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        ///
-        /// The contrast specifies how sharp the boundary is between the
-        /// light-facing areas and the shadowed areas.
-        ///
-        /// The contrast determines the difference between areas in light and
-        /// areas in shadow.  Determining the correct contrast amount requires
-        /// some trial and error, but if your application interprets the noise
-        /// map as a height map that has a spatial resolution of @a h meters
-        /// and an elevation resolution of 1 meter, a good contrast amount to
-        /// use is ( 1.0 / @a h ).
-        ///
-        /// Make sure the light source is enabled via a call to the
-        /// EnableLight() method before calling the Render() method.
-        void SetLightContrast (double lightContrast)
-        {
-          if (lightContrast <= 0.0) {
-            throw noise::ExceptionInvalidParam ();
-          }
+      /// The intensity of the light source.
+      double m_lightIntensity;
 
-          m_lightContrast = lightContrast;
-          m_recalcLightValues = true;
-        }
+      /// A pointer to the background image.
+      const Image *m_pBackgroundImage;
 
-        /// Sets the elevation of the light source, in degrees.
-        ///
-        /// @param lightElev The elevation of the light source.
-        ///
-        /// The elevation is the angle above the horizon:
-        /// - 0 degrees is on the horizon.
-        /// - 90 degrees is straight up.
-        ///
-        /// Make sure the light source is enabled via a call to the
-        /// EnableLight() method before calling the Render() method.
-        void SetLightElev (double lightElev)
-        {
-          m_lightElev = lightElev;
-          m_recalcLightValues = true;
-        }
+      /// A pointer to the destination image.
+      Image *m_pDestImage;
 
-        /// Returns the intensity of the light source.
-        ///
-        /// @returns The intensity of the light source.
-        ///
-        /// A good value for intensity is 2.0.
-        ///
-        /// Make sure the light source is enabled via a call to the
-        /// EnableLight() method before calling the Render() method.
-        void SetLightIntensity (double lightIntensity)
-        {
-          if (lightIntensity < 0.0) {
-            throw noise::ExceptionInvalidParam ();
-          }
+      /// A pointer to the source noise map.
+      const NoiseMap *m_pSourceNoiseMap;
 
-          m_lightIntensity = lightIntensity;
-          m_recalcLightValues = true;
-        }
+      /// Used by the CalcLightIntensity() method to recalculate the light
+      /// values only if the light parameters change.
+      ///
+      /// When the light parameters change, this value is set to True.  When
+      /// the CalcLightIntensity() method is called, this value is set to
+      /// false.
+      mutable bool m_recalcLightValues;
 
-        /// Sets the source noise map.
-        ///
-        /// @param sourceNoiseMap The source noise map.
-        ///
-        /// The destination image must exist throughout the lifetime of this
-        /// object unless another image replaces that image.
-        void SetSourceNoiseMap (const NoiseMap& sourceNoiseMap)
-        {
-          m_pSourceNoiseMap = &sourceNoiseMap;
-        }
+      /// The sine of the azimuth of the light source.
+      mutable double m_sinAzimuth;
 
-      private:
-
-        /// Calculates the destination color.
-        ///
-        /// @param sourceColor The source color generated from the color
-        /// gradient.
-        /// @param backgroundColor The color from the background image at the
-        /// corresponding position.
-        /// @param lightValue The intensity of the light at that position.
-        ///
-        /// @returns The destination color.
-        Color CalcDestColor (const Color& sourceColor,
-          const Color& backgroundColor, double lightValue) const;
-
-        /// Calculates the intensity of the light given some elevation values.
-        ///
-        /// @param center Elevation of the center point.
-        /// @param left Elevation of the point directly left of the center
-        /// point.
-        /// @param right Elevation of the point directly right of the center
-        /// point.
-        /// @param down Elevation of the point directly below the center
-        /// point.
-        /// @param up Elevation of the point directly above the center point.
-        ///
-        /// These values come directly from the noise map.
-        double CalcLightIntensity (double center, double left, double right,
-          double down, double up) const;
-
-        /// The cosine of the azimuth of the light source.
-        mutable double m_cosAzimuth;
-
-        /// The cosine of the elevation of the light source.
-        mutable double m_cosElev;
-
-        /// The color gradient used to specify the image colors.
-        GradientColor m_gradient;
-
-        /// A flag specifying whether lighting is enabled.
-        bool m_isLightEnabled;
-
-        /// A flag specifying whether wrapping is enabled.
-        bool m_isWrapEnabled;
-
-        /// The azimuth of the light source, in degrees.
-        double m_lightAzimuth;
-
-        /// The brightness of the light source.
-        double m_lightBrightness;
-
-        /// The color of the light source.
-        Color m_lightColor;
-
-        /// The contrast between areas in light and areas in shadow.
-        double m_lightContrast;
-
-        /// The elevation of the light source, in degrees.
-        double m_lightElev;
-
-        /// The intensity of the light source.
-        double m_lightIntensity;
-
-        /// A pointer to the background image.
-        const Image* m_pBackgroundImage;
-
-        /// A pointer to the destination image.
-        Image* m_pDestImage;
-
-        /// A pointer to the source noise map.
-        const NoiseMap* m_pSourceNoiseMap;
-
-        /// Used by the CalcLightIntensity() method to recalculate the light
-        /// values only if the light parameters change.
-        ///
-        /// When the light parameters change, this value is set to True.  When
-        /// the CalcLightIntensity() method is called, this value is set to
-        /// false.
-        mutable bool m_recalcLightValues;
-
-        /// The sine of the azimuth of the light source.
-        mutable double m_sinAzimuth;
-
-        /// The sine of the elevation of the light source.
-        mutable double m_sinElev;
-
+      /// The sine of the elevation of the light source.
+      mutable double m_sinElev;
     };
 
     /// Renders a normal map from a noise map.
@@ -2386,156 +2348,153 @@ namespace noise
     class RendererNormalMap
     {
 
-      public:
+    public:
+      /// Constructor.
+      RendererNormalMap();
 
-        /// Constructor.
-        RendererNormalMap ();
+      /// Enables or disables noise-map wrapping.
+      ///
+      /// @param enable A flag that enables or disables noise-map wrapping.
+      ///
+      /// This object requires three points (the initial point and the right
+      /// and up neighbors) to calculate the normal vector at that point.
+      /// If wrapping is/ enabled, and the initial point is on the edge of
+      /// the noise map, the appropriate neighbors that lie outside of the
+      /// noise map will "wrap" to the opposite side(s) of the noise map.
+      /// Otherwise, the appropriate neighbors are cropped to the edge of
+      /// the noise map.
+      ///
+      /// Enabling wrapping is useful when creating spherical and tileable
+      /// normal maps.
+      void EnableWrap(bool enable = true)
+      {
+        m_isWrapEnabled = enable;
+      }
 
-        /// Enables or disables noise-map wrapping.
-        ///
-        /// @param enable A flag that enables or disables noise-map wrapping.
-        ///
-        /// This object requires three points (the initial point and the right
-        /// and up neighbors) to calculate the normal vector at that point.
-        /// If wrapping is/ enabled, and the initial point is on the edge of
-        /// the noise map, the appropriate neighbors that lie outside of the
-        /// noise map will "wrap" to the opposite side(s) of the noise map.
-        /// Otherwise, the appropriate neighbors are cropped to the edge of
-        /// the noise map.
-        ///
-        /// Enabling wrapping is useful when creating spherical and tileable
-        /// normal maps.
-        void EnableWrap (bool enable = true)
-        {
-          m_isWrapEnabled = enable;
-        }
+      /// Returns the bump height.
+      ///
+      /// @returns The bump height.
+      ///
+      /// The bump height specifies the ratio of spatial resolution to
+      /// elevation resolution.  For example, if your noise map has a
+      /// spatial resolution of 30 meters and an elevation resolution of one
+      /// meter, set the bump height to 1.0 / 30.0.
+      ///
+      /// The spatial resolution and elevation resolution are determined by
+      /// the application.
+      double GetBumpHeight() const
+      {
+        return m_bumpHeight;
+      }
 
-        /// Returns the bump height.
-        ///
-        /// @returns The bump height.
-        ///
-        /// The bump height specifies the ratio of spatial resolution to
-        /// elevation resolution.  For example, if your noise map has a
-        /// spatial resolution of 30 meters and an elevation resolution of one
-        /// meter, set the bump height to 1.0 / 30.0.
-        ///
-        /// The spatial resolution and elevation resolution are determined by
-        /// the application.
-        double GetBumpHeight () const
-        {
-          return m_bumpHeight;
-        }
+      /// Determines if noise-map wrapping is enabled.
+      ///
+      /// @returns
+      /// - @a true if noise-map wrapping is enabled.
+      /// - @a false if noise-map wrapping is disabled.
+      ///
+      /// This object requires three points (the initial point and the right
+      /// and up neighbors) to calculate the normal vector at that point.
+      /// If wrapping is/ enabled, and the initial point is on the edge of
+      /// the noise map, the appropriate neighbors that lie outside of the
+      /// noise map will "wrap" to the opposite side(s) of the noise map.
+      /// Otherwise, the appropriate neighbors are cropped to the edge of
+      /// the noise map.
+      ///
+      /// Enabling wrapping is useful when creating spherical and tileable
+      /// normal maps.
+      bool IsWrapEnabled() const
+      {
+        return m_isWrapEnabled;
+      }
 
-        /// Determines if noise-map wrapping is enabled.
-        ///
-        /// @returns
-        /// - @a true if noise-map wrapping is enabled.
-        /// - @a false if noise-map wrapping is disabled.
-        ///
-        /// This object requires three points (the initial point and the right
-        /// and up neighbors) to calculate the normal vector at that point.
-        /// If wrapping is/ enabled, and the initial point is on the edge of
-        /// the noise map, the appropriate neighbors that lie outside of the
-        /// noise map will "wrap" to the opposite side(s) of the noise map.
-        /// Otherwise, the appropriate neighbors are cropped to the edge of
-        /// the noise map.
-        ///
-        /// Enabling wrapping is useful when creating spherical and tileable
-        /// normal maps.
-        bool IsWrapEnabled () const
-        {
-          return m_isWrapEnabled;
-        }
+      /// Renders the noise map to the destination image.
+      ///
+      /// @pre SetSourceNoiseMap() has been previously called.
+      /// @pre SetDestImage() has been previously called.
+      ///
+      /// @post The original contents of the destination image is destroyed.
+      ///
+      /// @throw noise::ExceptionInvalidParam See the preconditions.
+      void Render();
 
-        /// Renders the noise map to the destination image.
-        ///
-        /// @pre SetSourceNoiseMap() has been previously called.
-        /// @pre SetDestImage() has been previously called.
-        ///
-        /// @post The original contents of the destination image is destroyed.
-        ///
-        /// @throw noise::ExceptionInvalidParam See the preconditions.
-        void Render ();
+      /// Sets the bump height.
+      ///
+      /// @param bumpHeight The bump height.
+      ///
+      /// The bump height specifies the ratio of spatial resolution to
+      /// elevation resolution.  For example, if your noise map has a
+      /// spatial resolution of 30 meters and an elevation resolution of one
+      /// meter, set the bump height to 1.0 / 30.0.
+      ///
+      /// The spatial resolution and elevation resolution are determined by
+      /// the application.
+      void SetBumpHeight(double bumpHeight)
+      {
+        m_bumpHeight = bumpHeight;
+      }
 
-        /// Sets the bump height.
-        ///
-        /// @param bumpHeight The bump height.
-        ///
-        /// The bump height specifies the ratio of spatial resolution to
-        /// elevation resolution.  For example, if your noise map has a
-        /// spatial resolution of 30 meters and an elevation resolution of one
-        /// meter, set the bump height to 1.0 / 30.0.
-        ///
-        /// The spatial resolution and elevation resolution are determined by
-        /// the application.
-        void SetBumpHeight (double bumpHeight)
-        {
-          m_bumpHeight = bumpHeight;
-        }
+      /// Sets the destination image.
+      ///
+      /// @param destImage The destination image.
+      ///
+      /// The destination image will contain the normal map after a
+      /// successful call to the Render() method.
+      ///
+      /// The destination image must exist throughout the lifetime of this
+      /// object unless another image replaces that image.
+      void SetDestImage(Image &destImage)
+      {
+        m_pDestImage = &destImage;
+      }
 
-        /// Sets the destination image.
-        ///
-        /// @param destImage The destination image.
-        ///
-        /// The destination image will contain the normal map after a
-        /// successful call to the Render() method.
-        ///
-        /// The destination image must exist throughout the lifetime of this
-        /// object unless another image replaces that image.
-        void SetDestImage (Image& destImage)
-        {
-          m_pDestImage = &destImage;
-        }
+      /// Sets the source noise map.
+      ///
+      /// @param sourceNoiseMap The source noise map.
+      ///
+      /// The destination image must exist throughout the lifetime of this
+      /// object unless another image replaces that image.
+      void SetSourceNoiseMap(const NoiseMap &sourceNoiseMap)
+      {
+        m_pSourceNoiseMap = &sourceNoiseMap;
+      }
 
-        /// Sets the source noise map.
-        ///
-        /// @param sourceNoiseMap The source noise map.
-        ///
-        /// The destination image must exist throughout the lifetime of this
-        /// object unless another image replaces that image.
-        void SetSourceNoiseMap (const NoiseMap& sourceNoiseMap)
-        {
-          m_pSourceNoiseMap = &sourceNoiseMap;
-        }
+    private:
+      /// Calculates the normal vector at a given point on the noise map.
+      ///
+      /// @param nc The height of the given point in the noise map.
+      /// @param nr The height of the left neighbor.
+      /// @param nu The height of the up neighbor.
+      /// @param bumpHeight The bump height.
+      ///
+      /// @returns The normal vector represented as a color.
+      ///
+      /// This method encodes the (x, y, z) components of the normal vector
+      /// into the (red, green, blue) channels of the returned color.  In
+      /// order to represent the vector as a color, each coordinate of the
+      /// normal is mapped from the -1.0 to 1.0 range to the 0 to 255 range.
+      ///
+      /// The bump height specifies the ratio of spatial resolution to
+      /// elevation resolution.  For example, if your noise map has a
+      /// spatial resolution of 30 meters and an elevation resolution of one
+      /// meter, set the bump height to 1.0 / 30.0.
+      ///
+      /// The spatial resolution and elevation resolution are determined by
+      /// the application.
+      Color CalcNormalColor(double nc, double nr, double nu,
+                            double bumpHeight) const;
 
-      private:
+      /// The bump height for the normal map.
+      double m_bumpHeight;
 
-        /// Calculates the normal vector at a given point on the noise map.
-        ///
-        /// @param nc The height of the given point in the noise map.
-        /// @param nr The height of the left neighbor.
-        /// @param nu The height of the up neighbor.
-        /// @param bumpHeight The bump height.
-        ///
-        /// @returns The normal vector represented as a color.
-        ///
-        /// This method encodes the (x, y, z) components of the normal vector
-        /// into the (red, green, blue) channels of the returned color.  In
-        /// order to represent the vector as a color, each coordinate of the
-        /// normal is mapped from the -1.0 to 1.0 range to the 0 to 255 range.
-        ///
-        /// The bump height specifies the ratio of spatial resolution to
-        /// elevation resolution.  For example, if your noise map has a
-        /// spatial resolution of 30 meters and an elevation resolution of one
-        /// meter, set the bump height to 1.0 / 30.0.
-        /// 
-        /// The spatial resolution and elevation resolution are determined by
-        /// the application.
-        Color CalcNormalColor (double nc, double nr, double nu,
-          double bumpHeight) const;
+      /// A flag specifying whether wrapping is enabled.
+      bool m_isWrapEnabled;
 
-        /// The bump height for the normal map.
-        double m_bumpHeight;
+      /// A pointer to the destination image.
+      Image *m_pDestImage;
 
-        /// A flag specifying whether wrapping is enabled.
-        bool m_isWrapEnabled;
-
-        /// A pointer to the destination image.
-        Image* m_pDestImage;
-
-        /// A pointer to the source noise map.
-        const NoiseMap* m_pSourceNoiseMap;
-
+      /// A pointer to the source noise map.
+      const NoiseMap *m_pSourceNoiseMap;
     };
 
   }

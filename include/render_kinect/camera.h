@@ -32,8 +32,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 /* Header file for camera class that keeps the camera parameters and type of noise.
- * Most important functionality is the conversion of pixel coordinates to rays and 
- * the projection of rays onto the image plane. These functions are taken from the 
+ * Most important functionality is the conversion of pixel coordinates to rays and
+ * the projection of rays onto the image plane. These functions are taken from the
  * ros-package image_geometry.
  */
 
@@ -46,16 +46,15 @@ namespace render_kinect
 {
   enum NoiseType
   {
-    GAUSSIAN=1,
+    GAUSSIAN = 1,
     PERLIN,
     SIMPLEX,
     NONE
   };
-  
+
   class CameraInfo
   {
   public:
-
     int width, height;
     double z_near, z_far;
     double fx_, fy_;
@@ -68,7 +67,6 @@ namespace render_kinect
   class Camera
   {
   public:
-    
     double getFx()
     {
       return info_.fx_;
@@ -109,41 +107,40 @@ namespace render_kinect
       return info_.z_far;
     }
 
-    double getTx() 
+    double getTx()
     {
       return info_.tx_;
     }
 
-    
-  Camera(const CameraInfo p_info)
-    : info_(p_info) {}
-    
-    // two functions adopted from ros::image_geometry::PinholeCameraModel
-    cv::Point2d project3dToPixel(const cv::Point3d& xyz) const
-      {
-	
-	// [U V W]^T = P * [X Y Z 1]^T
-	// u = U/W
-	// v = V/W
-	cv::Point2d uv_rect;
-	uv_rect.x = (info_.fx_*xyz.x) / xyz.z + info_.cx_;
-	uv_rect.y = (info_.fy_*xyz.y) / xyz.z + info_.cy_;
-	return uv_rect;
-      }
+    Camera(const CameraInfo p_info)
+        : info_(p_info) {}
 
-    cv::Point3d projectPixelTo3dRay(const cv::Point2d& uv_rect) const
-      {
-	cv::Point3d ray;
-	ray.x = (uv_rect.x - info_.cx_) / info_.fx_;
-	ray.y = (uv_rect.y - info_.cy_) / info_.fy_;
-	ray.z = 1.0;
-	return ray;
-      }
+    // two functions adopted from ros::image_geometry::PinholeCameraModel
+    cv::Point2d project3dToPixel(const cv::Point3d &xyz) const
+    {
+
+      // [U V W]^T = P * [X Y Z 1]^T
+      // u = U/W
+      // v = V/W
+      cv::Point2d uv_rect;
+      uv_rect.x = (info_.fx_ * xyz.x) / xyz.z + info_.cx_;
+      uv_rect.y = (info_.fy_ * xyz.y) / xyz.z + info_.cy_;
+      return uv_rect;
+    }
+
+    cv::Point3d projectPixelTo3dRay(const cv::Point2d &uv_rect) const
+    {
+      cv::Point3d ray;
+      ray.x = (uv_rect.x - info_.cx_) / info_.fx_;
+      ray.y = (uv_rect.y - info_.cy_) / info_.fy_;
+      ray.z = 1.0;
+      return ray;
+    }
 
   private:
     CameraInfo info_;
   };
- 
+
 } // namespace render_kinect
 
 #endif // KINECT_SIM_CAMERA_H_

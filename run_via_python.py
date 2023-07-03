@@ -1,8 +1,5 @@
-
-from ctypes import *
-import time
+import ctypes
 import numpy as np
-import os
 import trimesh
 import matplotlib.pyplot as plt
 import open3d as o3d
@@ -10,16 +7,36 @@ import open3d as o3d
 import pyrender
 from pyrender.shader_program import ShaderProgramCache
 
-lib = cdll.LoadLibrary("lib/libkinectSim.so")
-
-lib.simulate.argtypes = [np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags='C_CONTIGUOUS'), c_int, np.ctypeslib.ndpointer(dtype=np.int32, ndim=2, flags='C_CONTIGUOUS'), c_int, np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags='C_CONTIGUOUS')]
+lib = np.ctypeslib.load_library("libkinectSim", "/run/media/matthias/1274B04B74B032F9/git/render_kinect/lib")
+lib.simulate.argtypes = [np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags='C_CONTIGUOUS'),
+                         ctypes.c_int,
+                         np.ctypeslib.ndpointer(dtype=np.int32, ndim=2, flags='C_CONTIGUOUS'),
+                         ctypes.c_int,
+                         np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags='C_CONTIGUOUS'),
+                         ctypes.c_int,
+                         ctypes.c_int,
+                         ctypes.c_float,
+                         ctypes.c_float,
+                         ctypes.c_float,
+                         ctypes.c_float]
 lib.simulate.restype = None
+
 
 class KinectSim:
 
     @staticmethod
     def simulate(verts, faces, out_depth):
-        lib.simulate(verts, len(verts), faces, len(faces), out_depth)
+        lib.simulate(verts,
+                     len(verts),
+                     faces,
+                     len(faces),
+                     out_depth,
+                     640,
+                     480,
+                     582.6989,
+                     582.6989,
+                     320.7906,
+                     245.2647)
      
 
 def render_kinect(mesh: o3d.geometry.TriangleMesh):        
@@ -40,12 +57,12 @@ def render_kinect(mesh: o3d.geometry.TriangleMesh):
     width = 640
     height = 480
     rgbd_image = o3d.geometry.RGBDImage().create_from_color_and_depth(o3d.geometry.Image(np.repeat(out_depth[:, :, None], 3, -1).astype(np.uint8)),
-                                                                    o3d.geometry.Image(out_depth),
-                                                                    depth_scale=1.0,
-                                                                    depth_trunc=10.0,
-                                                                    convert_rgb_to_intensity=False)
+                                                                      o3d.geometry.Image(out_depth),
+                                                                      depth_scale=1.0,
+                                                                      depth_trunc=10.0,
+                                                                      convert_rgb_to_intensity=False)
 
-    intrinsic = o3d.camera.PinholeCameraIntrinsic(width, height, fx=582.6989, fy=582.6989, cx=width // 2, cy=height // 2)
+    intrinsic = o3d.camera.PinholeCameraIntrinsic(width, height, fx=582.6989, fy=582.6989, cx=320.7906, cy=245.2647)
     extrinsic = np.identity(4)
     extrinsic[1, :] *= -1
     extrinsic[2, :] *= -1
@@ -57,11 +74,11 @@ def render_kinect(mesh: o3d.geometry.TriangleMesh):
 
 
 def render_perfect(mesh: o3d.geometry.TriangleMesh,
-        width: int = 640,
-        height: int = 480):
+                   width: int = 640,
+                   height: int = 480):
     trimesh_mesh = trimesh.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.faces), process=False)
     pyrender_mesh = pyrender.Mesh.from_trimesh(trimesh_mesh, smooth=False)
-    camera = pyrender.IntrinsicsCamera(fx=582.6989, fy=582.6989, cx=width // 2, cy=height // 2, znear=0.01, zfar=10.0)
+    camera = pyrender.IntrinsicsCamera(fx=582.6989, fy=582.6989, cx=320.7906, cy=245.2647, znear=0.01, zfar=10.0)
     pose = np.eye(4)
     #pose[2, 3] = np.clip(np.random.normal(1, 0.4), 0.7, 1.5)
 
@@ -75,18 +92,18 @@ def render_perfect(mesh: o3d.geometry.TriangleMesh,
     normal_image, depth_image = renderer.render(scene, flags=pyrender.RenderFlags.SKIP_CULL_FACES)
 
     rgbd_image = o3d.geometry.RGBDImage().create_from_color_and_depth(o3d.geometry.Image(normal_image.astype(np.uint8)),
-                                                                    o3d.geometry.Image(depth_image),
-                                                                    depth_scale=1.0,
-                                                                    depth_trunc=10.0,
-                                                                    convert_rgb_to_intensity=False)
+                                                                      o3d.geometry.Image(depth_image),
+                                                                      depth_scale=1.0,
+                                                                      depth_trunc=10.0,
+                                                                      convert_rgb_to_intensity=False)
 
-    intrinsic = o3d.camera.PinholeCameraIntrinsic(width, height, fx=582.6989, fy=582.6989, cx=width // 2, cy=height // 2)
+    intrinsic = o3d.camera.PinholeCameraIntrinsic(width, height, fx=582.6989, fy=582.6989, cx=320.7906, cy=245.2647)
     extrinsic = np.eye(4)#inv_trafo(pose)
     extrinsic[1, :] *= -1
     extrinsic[2, :] *= -1
     pcd = o3d.geometry.PointCloud().create_from_rgbd_image(image=rgbd_image,
-                                                        intrinsic=intrinsic,
-                                                        extrinsic=extrinsic)
+                                                           intrinsic=intrinsic,
+                                                           extrinsic=extrinsic)
 
     points = np.asarray(pcd.points)
     normals = np.asarray(pcd.colors) * 2 - 1

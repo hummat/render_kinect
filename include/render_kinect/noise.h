@@ -40,15 +40,13 @@ namespace render_kinect
   class Noise
   {
   public:
-  Noise( int width, int height)
-    : width_(width), 
-      height_(height)
-      {};
-    
-    virtual void generateNoiseField( cv::Mat &noise_field) = 0;
-    
+    Noise(int width, int height)
+        : width_(width),
+          height_(height){};
+
+    virtual void generateNoiseField(cv::Mat &noise_field) = 0;
+
   protected:
-    
     int width_, height_;
   };
 }

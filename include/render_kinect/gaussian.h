@@ -42,18 +42,17 @@ namespace render_kinect
   class GaussianNoise : public Noise
   {
   public:
-  GaussianNoise( int width, int height, float mean, float std)
-    : Noise(width , height), 
-      mean_(mean),
-      std_(std)
-      {};
-    
-    void generateNoiseField( cv::Mat &noise_field)
+    GaussianNoise(int width, int height, float mean, float std)
+        : Noise(width, height),
+          mean_(mean),
+          std_(std){};
+
+    void generateNoiseField(cv::Mat &noise_field)
     {
-      noise_field = cv::Mat(height_,width_,CV_32FC1);
+      noise_field = cv::Mat(height_, width_, CV_32FC1);
       cv::randn(noise_field, mean_, std_);
     }
-    
+
   private:
     float mean_;
     float std_;

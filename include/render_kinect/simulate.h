@@ -31,7 +31,7 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-/* Header file that sets up the simulator and triggers the simulation 
+/* Header file that sets up the simulator and triggers the simulation
  * of the kinect measurements and stores the results under a given directory.
  */
 #ifndef SIMULATE_H
@@ -44,7 +44,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
-#endif 
+#endif
 
 #include <string.h>
 
@@ -52,98 +52,105 @@
 
 static unsigned countf = 0;
 
-namespace render_kinect {
+namespace render_kinect
+{
 
-  class Simulate {
+  class Simulate
+  {
   public:
-  
-  Simulate(CameraInfo &cam_info, std::string object_name, std::string dot_path) 
-    : out_path_(object_name + "_") 
-      {
-	// allocate memory for depth image
-	int w = cam_info.width;
-	int h = cam_info.height;
+    Simulate(CameraInfo &cam_info, std::string object_name, std::string dot_path)
+        : out_path_(object_name + "_")
+    {
+      // allocate memory for depth image
+      int w = cam_info.width;
+      int h = cam_info.height;
 
-	depth_im_ = cv::Mat(h, w, CV_32FC1);
-	scaled_im_ = cv::Mat(h, w, CV_32FC1);
+      depth_im_ = cv::Mat(h, w, CV_32FC1);
+      scaled_im_ = cv::Mat(h, w, CV_32FC1);
 
-	object_model_ = new KinectSimulator(cam_info, object_name, dot_path);
+      object_model_ = new KinectSimulator(cam_info, object_name, dot_path);
 
-	transform_ = Eigen::Affine3d::Identity();
+      transform_ = Eigen::Affine3d::Identity();
+    }
 
-      }
-
-    ~Simulate() {
+    ~Simulate()
+    {
       delete object_model_;
     }
 
-    void simulateMeasurement(const Eigen::Affine3d &new_tf, bool store_depth, bool store_label, bool store_pcd) {
+    void simulateMeasurement(const Eigen::Affine3d &new_tf, bool store_depth, bool store_label, bool store_pcd)
+    {
       countf++;
-      
+
       // update old transform
       transform_ = new_tf;
 
       // simulate measurement of object and store in image, point cloud and labeled image
       cv::Mat p_result;
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
       object_model_->intersect(transform_, point_cloud_, depth_im_, labels_);
-    std::cout << "intersect " << std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
-      
+      std::cout << "intersect " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
+
       // in case object is not in view, don't store any data
       // However, if background is used, there will be points in the point cloud
       // although they don't belong to the arm
       int n_vis = 4000;
-      if(point_cloud_.rows<n_vis) {
-	std::cout << "Object not in view.\n";
-	return;
+      if (point_cloud_.rows < n_vis)
+      {
+        std::cout << "Object not in view.\n";
+        return;
       }
 
       // store on disk
-      if (store_depth) {
-	std::stringstream lD;
-	lD << out_path_ << "depth_orig" << std::setw(3) << std::setfill('0')
-	   << countf << ".png";
-	convertScaleAbs(depth_im_, scaled_im_, 255.0f);
-     std::cout << lD.str().c_str() << std::endl;
-	cv::imwrite(lD.str().c_str(), scaled_im_);
+      if (store_depth)
+      {
+        std::stringstream lD;
+        lD << out_path_ << "depth_orig" << std::setw(3) << std::setfill('0')
+           << countf << ".png";
+        convertScaleAbs(depth_im_, scaled_im_, 255.0f);
+        std::cout << lD.str().c_str() << std::endl;
+        cv::imwrite(lD.str().c_str(), scaled_im_);
       }
 
       // store on disk
-      if (store_label) {
-	std::stringstream lD;
-	lD << out_path_ << "labels" << std::setw(3) << std::setfill('0')
-	   << countf << ".png";
-     std::cout << lD.str().c_str() << std::endl;
-	cv::imwrite(lD.str().c_str(), labels_);
+      if (store_label)
+      {
+        std::stringstream lD;
+        lD << out_path_ << "labels" << std::setw(3) << std::setfill('0')
+           << countf << ".png";
+        std::cout << lD.str().c_str() << std::endl;
+        cv::imwrite(lD.str().c_str(), labels_);
       }
 
-      //convert point cloud to pcl/pcd format
-      if (store_pcd) {
+      // convert point cloud to pcl/pcd format
+      if (store_pcd)
+      {
 
 #ifdef HAVE_PCL
-	std::stringstream lD;
-	lD << out_path_ << "point_cloud" << std::setw(3)
-	   << std::setfill('0') << countf << ".pcd";
+        std::stringstream lD;
+        lD << out_path_ << "point_cloud" << std::setw(3)
+           << std::setfill('0') << countf << ".pcd";
 
-	pcl::PointCloud<pcl::PointXYZ> cloud;
-	// Fill in the cloud data
-	cloud.width = point_cloud_.rows;
-	cloud.height = 1;
-	cloud.is_dense = false;
-	cloud.points.resize(cloud.width * cloud.height);
+        pcl::PointCloud<pcl::PointXYZ> cloud;
+        // Fill in the cloud data
+        cloud.width = point_cloud_.rows;
+        cloud.height = 1;
+        cloud.is_dense = false;
+        cloud.points.resize(cloud.width * cloud.height);
 
-	for (int i = 0; i < point_cloud_.rows; i++) {
-	  const float* point = point_cloud_.ptr<float>(i);
-	  cloud.points[i].x = point[0];
-	  cloud.points[i].y = point[1];
-	  cloud.points[i].z = point[2];
-	}
-	
-	if (pcl::io::savePCDFileBinary(lD.str(), cloud) != 0)
-	  std::cout << "Couldn't store point cloud at " << lD.str() << std::endl;
+        for (int i = 0; i < point_cloud_.rows; i++)
+        {
+          const float *point = point_cloud_.ptr<float>(i);
+          cloud.points[i].x = point[0];
+          cloud.points[i].y = point[1];
+          cloud.points[i].z = point[2];
+        }
+
+        if (pcl::io::savePCDFileBinary(lD.str(), cloud) != 0)
+          std::cout << "Couldn't store point cloud at " << lD.str() << std::endl;
 
 #else
-	std::cout << "Couldn't store point cloud since PCL is not installed." << std::endl;
+        std::cout << "Couldn't store point cloud since PCL is not installed." << std::endl;
 #endif
       }
     }
@@ -151,9 +158,8 @@ namespace render_kinect {
     KinectSimulator *object_model_;
     cv::Mat depth_im_, scaled_im_, point_cloud_, labels_;
     std::string out_path_;
-    Eigen::Affine3d transform_; 
-
+    Eigen::Affine3d transform_;
   };
 
-} //namespace render_kinect
+} // namespace render_kinect
 #endif // SIMULATE_H
