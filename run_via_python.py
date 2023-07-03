@@ -1,4 +1,5 @@
 import ctypes
+from pathlib import Path
 import numpy as np
 import trimesh
 import matplotlib.pyplot as plt
@@ -7,7 +8,7 @@ import open3d as o3d
 import pyrender
 from pyrender.shader_program import ShaderProgramCache
 
-lib = np.ctypeslib.load_library("libkinectSim", "/run/media/matthias/1274B04B74B032F9/git/render_kinect/lib")
+lib = np.ctypeslib.load_library("libkinectSim", "lib")
 lib.simulate.argtypes = [np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags='C_CONTIGUOUS'),
                          ctypes.c_int,
                          np.ctypeslib.ndpointer(dtype=np.int32, ndim=2, flags='C_CONTIGUOUS'),
