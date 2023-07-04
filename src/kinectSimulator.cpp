@@ -63,10 +63,10 @@
 #include <CGAL/AABB_tree.h>
 #include <CGAL/AABB_traits.h>
 #include <CGAL/Polyhedron_3.h>
-#include <CGAL/AABB_polyhedron_triangle_primitive.h>
+#include <CGAL/AABB_face_graph_triangle_primitive.h>
 
 // #ifdef HAVE_OPENMP
-#include <omp.h>
+// #include <omp.h>
 // #endif
 
 // static unsigned countf = 0;
@@ -103,7 +103,6 @@ namespace render_kinect
 
 	void KinectSimulator::init(std::string dot_path)
 	{
-		// std::cout << "Width and Height: " << camera_.getWidth() << "x" << camera_.getHeight() << std::endl;
 		search_ = std::make_unique<TreeAndTri>();
 		updateTree();
 
@@ -181,13 +180,26 @@ namespace render_kinect
 	// with new vertices according to the updated transform
 	void KinectSimulator::updateTree()
 	{
+		std::cout << "Updating AABB tree" << std::endl;
+		// Check that the model has valid vertices and indices
+		// if (!model_->hasValidVertices() || !model_->hasValidIndices()) {
+		//	throw std::runtime_error("Invalid vertices or indices in model");
+		//}
+
+		std::cout << "Uploading vertices" << std::endl;
 		model_->uploadVertices(search_.get());
+		std::cout << "Uploading indices" << std::endl;
 		model_->uploadIndices(search_.get());
+
 		// since we are only dealing with one mesh for now, ID=0
+		std::cout << "Uploading part IDs" << std::endl;
 		model_->uploadPartIDs(search_.get(), 0);
 
+		std::cout << "Building tree" << std::endl;
 		search_->tree.rebuild(search_->triangles.begin(), search_->triangles.end());
+		std::cout << "Accelerating distance queries" << std::endl;
 		search_->tree.accelerate_distance_queries();
+		std::cout << "Done updating AABB tree" << std::endl;
 	}
 
 	// Function that intersects rays with the object model at current state.
@@ -217,7 +229,7 @@ namespace render_kinect
 		vec.reserve(camera_.getHeight() * camera_.getWidth());
 
 		// #if HAVE_OMP
-		#pragma omp parallel for collapse(2)
+		// #pragma omp parallel for collapse(2)
 		// #endif
 		for (int c = 0; c < camera_.getWidth(); ++c)
 		{

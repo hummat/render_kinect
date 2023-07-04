@@ -185,6 +185,56 @@ namespace render_kinect
       original_transform_ = Eigen::Affine3d::Identity();
     }
 
+    // Check if the vertices are valid
+    bool hasValidVertices() const
+    {
+      // Check that the vertices matrix is not empty
+      if (vertices_.size() == 0)
+      {
+        return false;
+      }
+
+      // Check that all vertices are finite
+      for (int i = 0; i < vertices_.rows(); ++i)
+      {
+        for (int j = 0; j < vertices_.cols(); ++j)
+        {
+          if (!std::isfinite(vertices_(i, j)))
+          {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }
+
+    // Check if the indices are valid
+    bool hasValidIndices() const
+    {
+      // Check that the scene has at least one mesh
+      if (scene_->mNumMeshes == 0)
+      {
+        return false;
+      }
+
+      // Check that all indices are within the range of vertices
+      const struct aiMesh *mesh = scene_->mMeshes[0];
+      for (unsigned f = 0; f < numFaces_; ++f)
+      {
+        const struct aiFace *face_ai = &mesh->mFaces[f];
+        for (unsigned i = 0; i < face_ai->mNumIndices; ++i)
+        {
+          if (face_ai->mIndices[i] >= numVertices_)
+          {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }
+
     void deallocateScene() { aiReleaseImport(scene_); }
 
     unsigned getNumFaces() { return numFaces_; }

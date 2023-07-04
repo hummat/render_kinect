@@ -167,15 +167,13 @@ extern "C"
     // cam_info.noise_ = render_kinect::NONE;
 
     std::string dot_path(dot_pattern_path);
-    render_kinect::KinectSimulator *object_model = new render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
+    render_kinect::KinectSimulator object_model = render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
 
     Eigen::Affine3d current_tf = Eigen::Affine3d::Identity();
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    cv::Mat scaled_im_, point_cloud_, labels_;
-
+    cv::Mat point_cloud_, labels_;
     cv::Mat depth_im_(cam_info.height, cam_info.width, CV_32FC1, out_depth);
+    cv::Mat scaled_im_(cam_info.height, cam_info.width, CV_32FC1);
 
-    scaled_im_ = cv::Mat(cam_info.height, cam_info.width, CV_32FC1);
-    object_model->intersect(current_tf, point_cloud_, depth_im_, labels_);
+    object_model.intersect(current_tf, point_cloud_, depth_im_, labels_);
   }
 }
