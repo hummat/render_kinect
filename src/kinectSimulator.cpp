@@ -180,26 +180,13 @@ namespace render_kinect
 	// with new vertices according to the updated transform
 	void KinectSimulator::updateTree()
 	{
-		std::cout << "Updating AABB tree" << std::endl;
-		// Check that the model has valid vertices and indices
-		// if (!model_->hasValidVertices() || !model_->hasValidIndices()) {
-		//	throw std::runtime_error("Invalid vertices or indices in model");
-		//}
-
-		std::cout << "Uploading vertices" << std::endl;
 		model_->uploadVertices(search_.get());
-		std::cout << "Uploading indices" << std::endl;
 		model_->uploadIndices(search_.get());
 
 		// since we are only dealing with one mesh for now, ID=0
-		std::cout << "Uploading part IDs" << std::endl;
 		model_->uploadPartIDs(search_.get(), 0);
-
-		std::cout << "Building tree" << std::endl;
 		search_->tree.rebuild(search_->triangles.begin(), search_->triangles.end());
-		std::cout << "Accelerating distance queries" << std::endl;
-		search_->tree.accelerate_distance_queries();
-		std::cout << "Done updating AABB tree" << std::endl;
+		// search_->tree.accelerate_distance_queries();  // not needed and can lead to segfaults
 	}
 
 	// Function that intersects rays with the object model at current state.
