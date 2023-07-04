@@ -42,8 +42,8 @@
 #include <render_kinect/camera.h>
 #include <render_kinect/noise.h>
 
-// #include <opencv/highgui.h>
 #include <opencv2/highgui/highgui.hpp>
+
 
 inline double abs(Point p)
 {
@@ -75,7 +75,7 @@ namespace render_kinect
     void filterDisp(const cv::Mat &disp, const cv::Mat &labels, cv::Mat &out_disp, cv::Mat &out_labels);
 
     // filter masks
-    static const int size_filt_ = 9;
+    static const int size_filt_ = 9;  
     cv::Mat weights_;
     cv::Mat fill_weights_;
 
@@ -107,10 +107,13 @@ namespace render_kinect
                     std::string dot_path);
 
     KinectSimulator(const CameraInfo &p_camera_info,
-                    float *vertices, int num_verts, int *faces, int num_faces,
+                    float *vertices,
+                    int num_verts,
+                    int *faces,
+                    int num_faces,
                     std::string dot_path);
     ~KinectSimulator();
   };
-} // namespace render_kinect
+}
 
-#endif /* KINECTSIMULATOR_H_ */
+#endif

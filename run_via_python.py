@@ -1,5 +1,6 @@
 import ctypes
 from pathlib import Path
+import time
 import numpy as np
 import trimesh
 import matplotlib.pyplot as plt
@@ -19,7 +20,8 @@ lib.simulate.argtypes = [np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags=
                          ctypes.c_float,
                          ctypes.c_float,
                          ctypes.c_float,
-                         ctypes.c_float]
+                         ctypes.c_float,
+                         ctypes.c_char_p]
 lib.simulate.restype = None
 
 
@@ -27,6 +29,7 @@ class KinectSim:
 
     @staticmethod
     def simulate(verts, faces, out_depth):
+        dot_pattern_path = str(Path("data/kinect-pattern_3x3_no_iccp.png").expanduser().resolve()).encode('utf-8')
         lib.simulate(verts,
                      len(verts),
                      faces,
@@ -37,13 +40,16 @@ class KinectSim:
                      582.6989,
                      582.6989,
                      320.7906,
-                     245.2647)
+                     245.2647,
+                     dot_pattern_path)
      
 
 def render_kinect(mesh: o3d.geometry.TriangleMesh):        
 
     out_depth = np.zeros((480, 640), np.float32)
+    start = time.time()
     KinectSim.simulate(mesh.vertices.astype(np.float32), mesh.faces.astype(np.int32), out_depth)
+    print("KinectSim.simulate took", time.time() - start, "seconds")
 
     plt.subplots(figsize=(6, 4))
     plt.imshow(out_depth, cmap="jet")
@@ -136,8 +142,7 @@ print(f_kinect_world)
 
 points = render_kinect(mesh)
 pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
-o3d.io.write_point_cloud(str("kinect.pcd"), pcd)
-
+# o3d.io.write_point_cloud(str("kinect.pcd"), pcd)
 # o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])
 
 # Pyrender uses -Z forward
@@ -145,6 +150,5 @@ mesh.apply_transform(trimesh.transformations.euler_matrix(np.pi, 0, 0))
 
 points, _ = render_perfect(mesh)
 pcd = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
-o3d.io.write_point_cloud(str("perfect.pcd"), pcd)
-
+# o3d.io.write_point_cloud(str("perfect.pcd"), pcd)
 # o3d.visualization.draw_geometries([pcd, o3d.geometry.TriangleMesh().create_coordinate_frame(size=0.05)])

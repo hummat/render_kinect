@@ -65,9 +65,9 @@
 #include <CGAL/Polyhedron_3.h>
 #include <CGAL/AABB_polyhedron_triangle_primitive.h>
 
-#ifdef HAVE_OPENMP
+// #ifdef HAVE_OPENMP
 #include <omp.h>
-#endif
+// #endif
 
 // static unsigned countf = 0;
 // static const int prec = 5;
@@ -217,7 +217,7 @@ namespace render_kinect
 		vec.reserve(camera_.getHeight() * camera_.getWidth());
 
 		// #if HAVE_OMP
-		// #pragma omp parallel for collapse(2)
+		#pragma omp parallel for collapse(2)
 		// #endif
 		for (int c = 0; c < camera_.getWidth(); ++c)
 		{
@@ -487,5 +487,4 @@ namespace render_kinect
 			}
 		}
 	}
-
-} // namespace render_kinect
+}

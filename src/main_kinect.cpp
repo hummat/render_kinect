@@ -146,10 +146,9 @@ extern "C"
                 float fx,
                 float fy,
                 float cx,
-                float cy)
+                float cy,
+                const char* dot_pattern_path)
   {
-
-    // Camera Parameters
     render_kinect::CameraInfo cam_info;
 
     cam_info.width = width;
@@ -161,18 +160,13 @@ extern "C"
     cam_info.z_far = 6.0;
     cam_info.fx_ = fx;
     cam_info.fy_ = fy;
-    // baseline between IR projector and IR camera
-    cam_info.tx_ = 0.075;
+    cam_info.tx_ = 0.075;  // baseline between IR projector and IR camera
 
-    // Type of noise
     // cam_info.noise_ = render_kinect::GAUSSIAN;
     cam_info.noise_ = render_kinect::PERLIN;
     // cam_info.noise_ = render_kinect::NONE;
-    // std::string dot_path = "/home/humt_ma/USERDIR/git/render_kinect/data/kinect-pattern_3x3_no_iccp.png";
-    std::string dot_path = "/run/media/matthias/1274B04B74B032F9/git/render_kinect/data/kinect-pattern_3x3_no_iccp.png";
-    // actualpath = realpath(dot_path.c_str(), NULL);
-    // std::cout <<  "Could not load dot pattern from " <<  actualpath << std::endl ;
-    // std::string abs_dot_path(actualpath);
+
+    std::string dot_path(dot_pattern_path);
     render_kinect::KinectSimulator *object_model = new render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
 
     Eigen::Affine3d current_tf = Eigen::Affine3d::Identity();

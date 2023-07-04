@@ -141,6 +141,6 @@ namespace render_kinect
     CameraInfo info_;
   };
 
-} // namespace render_kinect
+}
 
-#endif // KINECT_SIM_CAMERA_H_
+#endif
