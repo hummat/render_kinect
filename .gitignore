@@ -3,3 +3,6 @@
 bin
 build
 *.pcd
+*.so
+*.o
+*.a
