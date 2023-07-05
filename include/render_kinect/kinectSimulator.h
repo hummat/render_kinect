@@ -44,7 +44,6 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
-
 inline double abs(Point p)
 {
   return std::sqrt(p.x() * p.x() + p.y() * p.y() + p.z() * p.z());
@@ -75,7 +74,7 @@ namespace render_kinect
     void filterDisp(const cv::Mat &disp, const cv::Mat &labels, cv::Mat &out_disp, cv::Mat &out_labels);
 
     // filter masks
-    static const int size_filt_ = 9;  
+    static const int size_filt_ = 9;
     cv::Mat weights_;
     cv::Mat fill_weights_;
 
@@ -100,7 +99,8 @@ namespace render_kinect
     void intersect(const Eigen::Affine3d &p_transform, // tf::Transform &p_transform,
                    cv::Mat &point_cloud,
                    cv::Mat &depth_map,
-                   cv::Mat &labels);
+                   cv::Mat &labels,
+                   bool debug);
 
     KinectSimulator(const CameraInfo &p_camera_info,
                     std::string object_name,

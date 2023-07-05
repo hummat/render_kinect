@@ -21,35 +21,42 @@ lib.simulate.argtypes = [np.ctypeslib.ndpointer(dtype=np.float32, ndim=2, flags=
                          ctypes.c_float,
                          ctypes.c_float,
                          ctypes.c_float,
-                         ctypes.c_char_p]
-lib.simulate.restype = None
+                         ctypes.c_char_p,
+                         ctypes.c_bool]
+lib.simulate.restype = int
 
 
 class KinectSim:
+    def __init__(self, verbose: bool = False):
+        self.verbose = verbose
 
-    @staticmethod
-    def simulate(verts, faces, out_depth):
+    def simulate(self, verts, faces, out_depth) -> int:
         dot_pattern_path = str(Path("data/kinect-pattern_3x3_no_iccp.png").expanduser().resolve()).encode('utf-8')
-        lib.simulate(verts,
-                     len(verts),
-                     faces,
-                     len(faces),
-                     out_depth,
-                     640,
-                     480,
-                     582.6989,
-                     582.6989,
-                     320.7906,
-                     245.2647,
-                     dot_pattern_path)
+        return lib.simulate(verts,
+                            len(verts),
+                            faces,
+                            len(faces),
+                            out_depth,
+                            640,
+                            480,
+                            582.6989,
+                            582.6989,
+                            320.7906,
+                            245.2647,
+                            dot_pattern_path,
+                            self.verbose)
      
 
 def render_kinect(mesh: o3d.geometry.TriangleMesh):        
 
     out_depth = np.zeros((480, 640), np.float32)
     start = time.time()
-    KinectSim.simulate(mesh.vertices.astype(np.float32), mesh.faces.astype(np.int32), out_depth)
-    print("KinectSim.simulate took", time.time() - start, "seconds")
+    kinect_sim = KinectSim(verbose=True)
+    res = kinect_sim.simulate(mesh.vertices.astype(np.float32), mesh.faces.astype(np.int32), out_depth)
+    if res != 0:
+        print("KinectSim.simulate failed with code", res)
+    else:
+        print("KinectSim.simulate took", time.time() - start, "seconds")
 
     plt.subplots(figsize=(6, 4))
     plt.imshow(out_depth, cmap="jet")

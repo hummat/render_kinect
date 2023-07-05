@@ -88,7 +88,7 @@ namespace render_kinect
       // simulate measurement of object and store in image, point cloud and labeled image
       cv::Mat p_result;
       std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-      object_model_->intersect(transform_, point_cloud_, depth_im_, labels_);
+      object_model_->intersect(transform_, point_cloud_, depth_im_, labels_, false);
       std::cout << "intersect " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() << "ms" << std::endl;
 
       // in case object is not in view, don't store any data
