@@ -51,7 +51,7 @@ extern "C"
         std::cout << "Instantiating KinectSimulator" << std::endl;
       }
       std::string dot_path(dot_pattern_path);
-      render_kinect::KinectSimulator object_model = render_kinect::KinectSimulator(cam_info, vertices, num_verts, faces, num_faces, dot_path);
+      render_kinect::KinectSimulator object_model(cam_info, vertices, num_verts, faces, num_faces, dot_path);
 
       Eigen::Affine3d current_tf = Eigen::Affine3d::Identity();
       cv::Mat point_cloud_, labels_;
