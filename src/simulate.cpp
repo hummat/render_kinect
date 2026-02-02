@@ -22,6 +22,10 @@ extern "C"
                float fy,
                float cx,
                float cy,
+               float z_near,
+               float z_far,
+               float baseline,
+               int noise_type,  // 0=NONE, 1=GAUSSIAN, 2=PERLIN, 3=SIMPLEX
                const char *dot_pattern_path,
                bool debug)
   {
@@ -35,16 +39,20 @@ extern "C"
       cam_info.height = height;
       cam_info.cx_ = cx;
       cam_info.cy_ = cy;
-
-      cam_info.z_near = 0.5;
-      cam_info.z_far = 6.0;
+      cam_info.z_near = z_near;
+      cam_info.z_far = z_far;
       cam_info.fx_ = fx;
       cam_info.fy_ = fy;
-      cam_info.tx_ = 0.075; // baseline between IR projector and IR camera
+      cam_info.tx_ = baseline;
 
-      // cam_info.noise_ = render_kinect::GAUSSIAN;
-      cam_info.noise_ = render_kinect::PERLIN;
-      // cam_info.noise_ = render_kinect::NONE;
+      // Set noise type
+      switch (noise_type) {
+        case 0: cam_info.noise_ = render_kinect::NONE; break;
+        case 1: cam_info.noise_ = render_kinect::GAUSSIAN; break;
+        case 2: cam_info.noise_ = render_kinect::PERLIN; break;
+        case 3: cam_info.noise_ = render_kinect::SIMPLEX; break;
+        default: cam_info.noise_ = render_kinect::PERLIN; break;
+      }
 
       if (debug)
       {
@@ -56,6 +64,7 @@ extern "C"
       Eigen::Affine3d current_tf = Eigen::Affine3d::Identity();
       cv::Mat point_cloud_, labels_;
       cv::Mat depth_im_(cam_info.height, cam_info.width, CV_32FC1, out_depth);
+      depth_im_.setTo(0);  // Initialize depth buffer to 0
       cv::Mat scaled_im_(cam_info.height, cam_info.width, CV_32FC1);
 
       if (debug)
