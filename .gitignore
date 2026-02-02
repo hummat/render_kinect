@@ -1,5 +1,21 @@
-.vscode
-.idea
-bin
-build
+# IDE
+.vscode/
+.idea/
+
+# C++ build
+bin/
+build/
+.cache/
+lib/*.a
+lib/*.so
+!lib/libnoise/
+
+# Python build
+*.egg-info/
+__pycache__/
+*.py[cod]
+*.so
+simulate_wrapper.cpp
+
+# Data
 *.pcd
