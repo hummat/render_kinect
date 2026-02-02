@@ -24,6 +24,9 @@ extension = Extension(
         "opencv_highgui",
         "opencv_imgcodecs"
     ],
+    library_dirs=[
+        "lib/libnoise/lib",
+    ],
     language="c++",
     extra_compile_args=["-std=c++17"],  # CGAL 5+ requires C++17
     extra_link_args=[]  # add any additional linking flags if needed
